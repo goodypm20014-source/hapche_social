@@ -74,11 +74,23 @@ export default function FeedScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
       {/* Header */}
-      <View className="px-4 py-3 border-b border-gray-200">
+      <View className="px-4 py-3 border-b border-gray-200 flex-row items-center justify-between">
         <Text className="text-2xl font-bold">Новини</Text>
+        {isGuest && (
+          <View className="bg-gray-200 px-3 py-1 rounded-full">
+            <Text className="text-xs font-semibold text-gray-700">ГОСТ</Text>
+          </View>
+        )}
       </View>
 
       <ScrollView className="flex-1">
+        {/* Debug tier info */}
+        <View className="bg-purple-100 p-3 border-b border-purple-200">
+          <Text className="text-sm font-mono">
+            DEBUG: User Tier = "{user.tier}" | isGuest = {isGuest ? "true" : "false"}
+          </Text>
+        </View>
+
         {/* Mock mode info banner */}
         {showMockBanner && (
           <View className="bg-amber-50 border-b border-amber-200 p-4">
@@ -145,7 +157,7 @@ export default function FeedScreen() {
         )}
 
         {/* Feed posts with teaser overlay for guests */}
-        <View className="relative">
+        <View style={{ position: "relative" }}>
           {mockPosts.map((post, index) => (
             <View
               key={post.id}
@@ -192,40 +204,57 @@ export default function FeedScreen() {
 
           {/* Teaser overlay for guests - peek at the top */}
           {isGuest && (
-            <Pressable
-              onPress={handleTeaserTap}
-              className="absolute left-0 right-0"
-              style={{ top: 250, bottom: 0 }}
-            >
-              <View className="flex-1 bg-white/95">
-                <View className="absolute right-4 top-4 z-20">
+            <View style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }}>
+              {/* Small peek window at top (5mm ≈ 60px) */}
+              <View style={{ height: 60 }} />
+              
+              {/* Blur overlay covering rest */}
+              <Pressable
+                onPress={handleTeaserTap}
+                className="flex-1 bg-white/98"
+                style={{ 
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: -4 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 8,
+                }}
+              >
+                <View style={{ position: "absolute", right: 16, top: 16, zIndex: 20 }}>
                   <Pressable
                     onPress={handleTeaserTap}
-                    className="w-8 h-8 rounded-full bg-gray-200 items-center justify-center"
+                    className="w-10 h-10 rounded-full bg-gray-800/10 items-center justify-center"
                   >
-                    <Ionicons name="close" size={20} color="#666" />
+                    <Ionicons name="close" size={24} color="#000" />
                   </Pressable>
                 </View>
 
                 <View className="flex-1 items-center justify-center px-8">
-                  <Ionicons name="lock-closed" size={64} color="#3b82f6" />
-                  <Text className="text-2xl font-bold text-center mt-6 mb-3">
+                  <View className="bg-blue-100 w-20 h-20 rounded-full items-center justify-center mb-6">
+                    <Ionicons name="lock-closed" size={40} color="#3b82f6" />
+                  </View>
+                  <Text className="text-3xl font-bold text-center mb-3">
                     Откриjте повече
                   </Text>
-                  <Text className="text-center text-gray-600 text-base leading-6 mb-6">
+                  <Text className="text-center text-gray-600 text-base leading-6 mb-8">
                     Регистрирайте се безплатно за достъп до пълния feed, детайлни анализи и любими съставки
                   </Text>
                   <Pressable
                     onPress={handleTeaserTap}
-                    className="bg-blue-500 px-8 py-4 rounded-lg"
+                    className="bg-blue-500 px-10 py-4 rounded-xl shadow-lg"
                   >
                     <Text className="text-white font-bold text-lg">
                       Регистрирайте се безплатно
                     </Text>
                   </Pressable>
+                  
+                  <View className="mt-8 flex-row items-center">
+                    <View className="h-px bg-gray-300 flex-1" />
+                    <Text className="text-gray-400 text-sm px-4">или продължете като гост</Text>
+                    <View className="h-px bg-gray-300 flex-1" />
+                  </View>
                 </View>
-              </View>
-            </Pressable>
+              </Pressable>
+            </View>
           )}
         </View>
       </ScrollView>
