@@ -1,0 +1,213 @@
+import React, { useState, useRef } from "react";
+import { View, Text, Pressable, ActivityIndicator, Modal } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
+import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import { useAppStore } from "../state/appStore";
+import { scanAndAnalyzeSupplement } from "../api/supplement-backend";
+import { useNavigation } from "@react-navigation/native";
+
+export default function ScanScreen() {
+  const [facing, setFacing] = useState<CameraType>("back");
+  const [permission, requestPermission] = useCameraPermissions();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showLimitModal, setShowLimitModal] = useState(false);
+  const cameraRef = useRef<CameraView>(null);
+  
+  const canScan = useAppStore((s) => s.canScan);
+  const user = useAppStore((s) => s.user);
+  const incrementScanCount = useAppStore((s) => s.incrementScanCount);
+  const addScan = useAppStore((s) => s.addScan);
+  const navigation = useNavigation();
+
+  if (!permission) {
+    return (
+      <View className="flex-1 items-center justify-center bg-black">
+        <ActivityIndicator size="large" color="#fff" />
+      </View>
+    );
+  }
+
+  if (!permission.granted) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-black">
+        <Ionicons name="camera-outline" size={64} color="#fff" />
+        <Text className="text-white text-lg mt-4 text-center px-8">
+          Необходимо е разрешение за достъп до камерата
+        </Text>
+        <Pressable
+          onPress={requestPermission}
+          className="bg-blue-500 px-6 py-3 rounded-lg mt-6"
+        >
+          <Text className="text-white font-semibold">Разреши достъп</Text>
+        </Pressable>
+      </SafeAreaView>
+    );
+  }
+
+  const toggleCameraFacing = () => {
+    setFacing((current) => (current === "back" ? "front" : "back"));
+  };
+
+  const pickImageFromGallery = async () => {
+    if (!canScan()) {
+      setShowLimitModal(true);
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: "images",
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      await processImage(result.assets[0].uri);
+    }
+  };
+
+  const takePicture = async () => {
+    if (!canScan()) {
+      setShowLimitModal(true);
+      return;
+    }
+
+    if (!cameraRef.current) return;
+
+    try {
+      const photo = await cameraRef.current.takePictureAsync();
+
+      if (photo && photo.uri) {
+        await processImage(photo.uri);
+      }
+    } catch (error) {
+      console.error("Error taking picture:", error);
+    }
+  };
+
+  const processImage = async (imageUri: string) => {
+    setIsProcessing(true);
+    try {
+      const analysis = await scanAndAnalyzeSupplement(imageUri);
+      
+      const scanRecord = {
+        id: Date.now().toString(),
+        timestamp: Date.now(),
+        imageUri,
+        analysis,
+      };
+
+      addScan(scanRecord);
+      incrementScanCount();
+
+      // Navigate to result screen
+      (navigation as any).navigate("ScanResult", { scanRecord });
+    } catch (error) {
+      console.error("Processing error:", error);
+      alert("Грешка при обработка на изображението. Опитайте отново.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <View className="flex-1 bg-black">
+      <CameraView
+        ref={cameraRef}
+        style={{ flex: 1 }}
+        facing={facing}
+      >
+        {/* Overlay UI */}
+        <View className="absolute top-0 left-0 right-0 bottom-0 z-10">
+          <SafeAreaView className="flex-1" edges={["top"]}>
+            {/* Top bar */}
+            <View className="px-4 py-3">
+              <View className="flex-row items-center justify-between">
+                <View className="bg-black/50 px-3 py-2 rounded-lg">
+                  <Text className="text-white font-semibold">
+                    {user.isPro ? "Pro" : `${5 - user.scansThisMonth}/5`}
+                  </Text>
+                </View>
+                <Pressable
+                  onPress={toggleCameraFacing}
+                  className="bg-black/50 w-12 h-12 rounded-full items-center justify-center"
+                >
+                  <Ionicons name="camera-reverse" size={24} color="white" />
+                </Pressable>
+              </View>
+            </View>
+
+            {/* Center guide */}
+            <View className="flex-1 items-center justify-center px-8">
+              <View className="border-2 border-white rounded-lg w-full aspect-[3/4] opacity-60" />
+              <Text className="text-white text-center mt-4 text-lg">
+                Центрирайте етикета в рамката
+              </Text>
+            </View>
+
+            {/* Bottom controls */}
+            <View className="pb-8 items-center">
+              <View className="flex-row items-center justify-around w-full px-12">
+                <Pressable
+                  onPress={pickImageFromGallery}
+                  className="bg-black/50 w-14 h-14 rounded-full items-center justify-center"
+                >
+                  <Ionicons name="images" size={28} color="white" />
+                </Pressable>
+
+                <Pressable
+                  onPress={takePicture}
+                  disabled={isProcessing}
+                  className="bg-white w-20 h-20 rounded-full items-center justify-center border-4 border-gray-300"
+                >
+                  {isProcessing ? (
+                    <ActivityIndicator size="large" color="#3b82f6" />
+                  ) : (
+                    <View className="bg-blue-500 w-16 h-16 rounded-full" />
+                  )}
+                </Pressable>
+
+                <View className="w-14" />
+              </View>
+            </View>
+          </SafeAreaView>
+        </View>
+      </CameraView>
+
+      {/* Limit reached modal */}
+      <Modal visible={showLimitModal} transparent animationType="fade">
+        <View className="flex-1 bg-black/70 items-center justify-center px-8">
+          <View className="bg-white rounded-2xl p-6 w-full">
+            <View className="items-center mb-4">
+              <Ionicons name="alert-circle" size={64} color="#ef4444" />
+            </View>
+            <Text className="text-xl font-bold text-center mb-2">
+              Достигнат лимит
+            </Text>
+            <Text className="text-center text-gray-600 mb-6">
+              Изчерпали сте безплатните 5 сканирания за този месец. Надстройте до Pro за неограничен достъп.
+            </Text>
+            <Pressable
+              onPress={() => {
+                setShowLimitModal(false);
+                (navigation as any).navigate("Profile");
+              }}
+              className="bg-amber-500 py-4 rounded-lg mb-3"
+            >
+              <Text className="text-white font-bold text-center text-lg">
+                Upgrade to Pro
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setShowLimitModal(false)}
+              className="py-3"
+            >
+              <Text className="text-gray-600 text-center">Отказ</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+}
