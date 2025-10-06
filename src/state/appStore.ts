@@ -6,6 +6,16 @@ import { SupplementAnalysis } from "../api/supplement-backend";
 // User tier levels
 export type UserTier = "guest" | "free" | "premium";
 
+// Moderation status for all public content
+export type ModerationStatus = "pending" | "approved" | "rejected" | "flagged";
+
+export interface ModerationResult {
+  status: ModerationStatus;
+  timestamp: number;
+  reason?: string; // If rejected or flagged
+  confidence: number; // 0-1 AI confidence score
+}
+
 export interface ScanRecord {
   id: string;
   timestamp: number;
@@ -26,6 +36,7 @@ export interface StackComment {
   userName: string;
   content: string;
   timestamp: number;
+  moderation?: ModerationResult; // AI moderation for comments
 }
 
 export interface Stack {
@@ -47,6 +58,7 @@ export interface Stack {
   comments: StackComment[];
   followers: string[]; // array of userIds following this stack
   createdAt: number;
+  moderation?: ModerationResult; // AI moderation for public stacks
 }
 
 export interface StackReminder {
@@ -112,11 +124,18 @@ export interface UserProfile {
   id: string;
   name: string;
   email?: string;
+  phoneNumber?: string; // For SMS verification
   tier: UserTier;
   registeredAt?: number;
   subscriptionExpiresAt?: number;
   hasCompletedOnboarding: boolean;
   profileCard: PublicProfileCard;
+  // Profile customization
+  profilePhotoUri?: string; // Local URI or URL to profile photo
+  bio?: string; // User bio/about me
+  // Verification status
+  isPhoneVerified: boolean;
+  isEmailVerified: boolean;
   // Social features
   rating: number; // 0-5 user reputation score
   badges: Badge[];
@@ -202,6 +221,8 @@ export const useAppStore = create<AppState>()(
         badges: [],
         following: [],
         followers: [],
+        isPhoneVerified: false,
+        isEmailVerified: false,
         profileCard: {
           userId: Date.now().toString(),
           name: "Гост",

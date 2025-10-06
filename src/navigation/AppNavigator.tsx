@@ -13,6 +13,8 @@ import FavoritesScreen from "../screens/FavoritesScreen";
 import StacksScreen from "../screens/StacksScreen";
 import StackDetailScreen from "../screens/StackDetailScreen";
 import PublicStacksFeedScreen from "../screens/PublicStacksFeedScreen";
+import RegistrationScreen from "../screens/RegistrationScreen";
+import EditProfileScreen from "../screens/EditProfileScreen";
 import { useAppStore } from "../state/appStore";
 
 const Tab = createBottomTabNavigator();
@@ -174,6 +176,22 @@ export default function AppNavigator() {
         component={PublicStacksFeedScreen}
         options={{
           presentation: "modal",
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="Registration"
+        component={RegistrationScreen}
+        options={{
+          presentation: "modal",
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="EditProfile"
+        component={EditProfileScreen}
+        options={{
+          presentation: "card",
           headerShown: false,
         }}
       />

@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, Pressable, Modal, TextInput } from "react-native";
+import { View, Text, ScrollView, Pressable, Modal, TextInput, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppStore } from "../state/appStore";
 import { useNavigation } from "@react-navigation/native";
+import { moderateStack } from "../api/moderation";
 
 export default function StacksScreen() {
   const navigation = useNavigation();
@@ -15,11 +16,28 @@ export default function StacksScreen() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newStackName, setNewStackName] = useState("");
   const [newStackDescription, setNewStackDescription] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
 
   const hasAccess = canAccessStacks();
 
-  const handleCreateStack = () => {
-    if (newStackName.trim()) {
+  const handleCreateStack = async () => {
+    if (!newStackName.trim()) return;
+    
+    setIsCreating(true);
+
+    try {
+      // AI Moderation check
+      const moderation = await moderateStack(newStackName.trim(), newStackDescription.trim());
+      
+      if (moderation.status === "rejected") {
+        Alert.alert(
+          "Съдържанието не може да бъде публикувано",
+          `Причина: ${moderation.reason}\n\nМоля редактирайте името или описанието.`
+        );
+        setIsCreating(false);
+        return;
+      }
+
       const newStack = {
         id: Date.now().toString(),
         name: newStackName.trim(),
@@ -33,12 +51,31 @@ export default function StacksScreen() {
         comments: [],
         followers: [],
         createdAt: Date.now(),
+        moderation, // Store moderation result
       };
+      
       addStack(newStack);
-      setNewStackName("");
-      setNewStackDescription("");
-      setShowCreateModal(false);
+      
+      if (moderation.status === "flagged") {
+        Alert.alert(
+          "Stack създаден",
+          "Вашият stack е отбелязан за ръчна проверка и ще бъде прегледан от модератор.",
+          [{ text: "OK", onPress: () => resetCreateForm() }]
+        );
+      } else {
+        resetCreateForm();
+      }
+    } catch (error) {
+      Alert.alert("Грешка", "Не успяхме да създадем stack. Моля опитайте отново.");
+      setIsCreating(false);
     }
+  };
+
+  const resetCreateForm = () => {
+    setNewStackName("");
+    setNewStackDescription("");
+    setShowCreateModal(false);
+    setIsCreating(false);
   };
 
   const handleStackPress = (stackId: string) => {
@@ -247,13 +284,13 @@ export default function StacksScreen() {
 
             <Pressable
               onPress={handleCreateStack}
-              disabled={!newStackName.trim()}
+              disabled={!newStackName.trim() || isCreating}
               className={`py-4 rounded-lg ${
-                newStackName.trim() ? "bg-amber-500" : "bg-gray-300"
+                !newStackName.trim() || isCreating ? "bg-gray-300" : "bg-amber-500"
               }`}
             >
               <Text className="text-white font-bold text-center text-lg">
-                Създай Stack
+                {isCreating ? "Създаване..." : "Създай Stack"}
               </Text>
             </Pressable>
           </View>

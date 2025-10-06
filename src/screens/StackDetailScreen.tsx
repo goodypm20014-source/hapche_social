@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, Pressable, TextInput, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback } from "react-native";
+import { View, Text, ScrollView, Pressable, TextInput, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppStore } from "../state/appStore";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { moderateComment, isContentApproved } from "../api/moderation";
 
 export default function StackDetailScreen() {
   const navigation = useNavigation();
@@ -24,6 +25,7 @@ export default function StackDetailScreen() {
 
   const [commentText, setCommentText] = useState("");
   const [showAllComments, setShowAllComments] = useState(false);
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
   const stack = stacks.find((s) => s.id === stackId);
 
@@ -66,11 +68,54 @@ export default function StackDetailScreen() {
     }
   };
 
-  const handleAddComment = () => {
-    if (commentText.trim()) {
-      addStackComment(stackId, commentText.trim());
+  const handleAddComment = async () => {
+    if (!commentText.trim()) return;
+    
+    setIsSubmittingComment(true);
+
+    try {
+      // AI Moderation
+      const moderation = await moderateComment(commentText.trim());
+      
+      if (moderation.status === "rejected") {
+        Alert.alert(
+          "Коментарът не може да бъде публикуван",
+          `Причина: ${moderation.reason}\n\nМоля редактирайте съдържанието.`
+        );
+        setIsSubmittingComment(false);
+        return;
+      }
+
+      const comment = {
+        id: Date.now().toString(),
+        userId: user.id,
+        userName: user.name,
+        content: commentText.trim(),
+        timestamp: Date.now(),
+        moderation,
+      };
+
+      // Add comment to stack
+      const currentStack = useAppStore.getState().stacks.find(s => s.id === stackId);
+      if (currentStack) {
+        useAppStore.getState().updateStack(stackId, {
+          comments: [...currentStack.comments, comment],
+        });
+      }
+
       setCommentText("");
       Keyboard.dismiss();
+      
+      if (moderation.status === "flagged") {
+        Alert.alert(
+          "Коментар добавен",
+          "Вашият коментар е отбелязан за проверка и ще бъде прегледан от модератор."
+        );
+      }
+    } catch (error) {
+      Alert.alert("Грешка", "Не успяхме да добавим коментара.");
+    } finally {
+      setIsSubmittingComment(false);
     }
   };
 
@@ -297,30 +342,37 @@ export default function StackDetailScreen() {
               </View>
             ) : (
               <>
-                {displayComments.map((comment) => (
-                  <View key={comment.id} className="mb-4">
-                    <View className="flex-row items-start">
-                      <View className="w-8 h-8 rounded-full bg-blue-500 items-center justify-center mr-3">
-                        <Text className="text-white font-semibold text-xs">
-                          {comment.userName[0]}
-                        </Text>
-                      </View>
-                      <View className="flex-1">
-                        <View className="flex-row items-center mb-1">
-                          <Text className="font-semibold text-sm mr-2">
-                            {comment.userName}
-                          </Text>
-                          <Text className="text-xs text-gray-400">
-                            {new Date(comment.timestamp).toLocaleDateString("bg-BG")}
+                {displayComments.map((comment) => {
+                  // Only show approved comments
+                  if (!isContentApproved(comment.moderation)) {
+                    return null;
+                  }
+
+                  return (
+                    <View key={comment.id} className="mb-4">
+                      <View className="flex-row items-start">
+                        <View className="w-8 h-8 rounded-full bg-blue-500 items-center justify-center mr-3">
+                          <Text className="text-white font-semibold text-xs">
+                            {comment.userName[0]}
                           </Text>
                         </View>
-                        <Text className="text-gray-700 leading-5">
-                          {comment.content}
-                        </Text>
+                        <View className="flex-1">
+                          <View className="flex-row items-center mb-1">
+                            <Text className="font-semibold text-sm mr-2">
+                              {comment.userName}
+                            </Text>
+                            <Text className="text-xs text-gray-400">
+                              {new Date(comment.timestamp).toLocaleDateString("bg-BG")}
+                            </Text>
+                          </View>
+                          <Text className="text-gray-700 leading-5">
+                            {comment.content}
+                          </Text>
+                        </View>
                       </View>
                     </View>
-                  </View>
-                ))}
+                  );
+                })}
 
                 {stack.comments.length > 3 && !showAllComments && (
                   <Pressable
@@ -356,15 +408,15 @@ export default function StackDetailScreen() {
               </View>
               <Pressable
                 onPress={handleAddComment}
-                disabled={!commentText.trim()}
+                disabled={!commentText.trim() || isSubmittingComment}
                 className={`w-10 h-10 rounded-full items-center justify-center ${
-                  commentText.trim() ? "bg-blue-500" : "bg-gray-300"
+                  commentText.trim() && !isSubmittingComment ? "bg-blue-500" : "bg-gray-300"
                 }`}
               >
                 <Ionicons
-                  name="send"
+                  name={isSubmittingComment ? "hourglass" : "send"}
                   size={20}
-                  color={commentText.trim() ? "#fff" : "#999"}
+                  color={commentText.trim() && !isSubmittingComment ? "#fff" : "#999"}
                 />
               </Pressable>
             </View>

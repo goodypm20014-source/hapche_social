@@ -3,8 +3,10 @@ import { View, Text, ScrollView, Pressable, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppStore } from "../state/appStore";
+import { useNavigation } from "@react-navigation/native";
 
 export default function FeedScreen() {
+  const navigation = useNavigation();
   const user = useAppStore((s) => s.user);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [showMockBanner, setShowMockBanner] = useState(true);
@@ -241,7 +243,7 @@ export default function FeedScreen() {
             <Pressable
               onPress={() => {
                 setShowRegistrationModal(false);
-                // TODO: Navigate to registration screen
+                (navigation as any).navigate("Registration");
               }}
               className="bg-blue-500 py-4 rounded-lg mb-3"
             >

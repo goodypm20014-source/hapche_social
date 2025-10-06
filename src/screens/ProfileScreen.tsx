@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, ScrollView, Pressable } from "react-native";
+import { View, Text, ScrollView, Pressable, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppStore } from "../state/appStore";
@@ -45,19 +45,37 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
       {/* Header */}
-      <View className="px-4 py-3 border-b border-gray-200">
+      <View className="px-4 py-3 border-b border-gray-200 flex-row items-center justify-between">
         <Text className="text-2xl font-bold">Профил</Text>
+        {user.tier !== "guest" && (
+          <Pressable onPress={() => (navigation as any).navigate("EditProfile")}>
+            <Ionicons name="create-outline" size={24} color="#3b82f6" />
+          </Pressable>
+        )}
       </View>
 
       <ScrollView className="flex-1">
         {/* Profile info */}
         <View className="items-center py-8 border-b border-gray-200">
-          <View className="w-24 h-24 rounded-full bg-blue-500 items-center justify-center mb-4">
-            <Text className="text-white text-4xl font-bold">{user.name[0]}</Text>
-          </View>
+          {user.profilePhotoUri ? (
+            <Image
+              source={{ uri: user.profilePhotoUri }}
+              className="w-24 h-24 rounded-full mb-4"
+            />
+          ) : (
+            <View className="w-24 h-24 rounded-full bg-blue-500 items-center justify-center mb-4">
+              <Text className="text-white text-4xl font-bold">{user.name[0]}</Text>
+            </View>
+          )}
           <Text className="text-2xl font-bold mb-1">{user.name}</Text>
-          {user.email && (
-            <Text className="text-gray-600 mb-2">{user.email}</Text>
+          {user.bio && (
+            <Text className="text-gray-600 text-center px-8 mb-2">{user.bio}</Text>
+          )}
+          {user.email && user.tier !== "guest" && (
+            <View className="flex-row items-center">
+              <Ionicons name="mail" size={14} color="#666" />
+              <Text className="text-gray-500 text-sm ml-1">{user.email}</Text>
+            </View>
           )}
           <View className="flex-row items-center">
             <View className={`px-3 py-1 rounded-full ${getTierColor()}`}>
@@ -193,7 +211,7 @@ export default function ProfileScreen() {
                 </View>
               </View>
               <Pressable
-                onPress={() => registerUser("demo@example.com", "Demo User")}
+                onPress={() => (navigation as any).navigate("Registration")}
                 className="bg-green-500 py-3 rounded-lg mt-4"
               >
                 <Text className="text-white font-bold text-center">
