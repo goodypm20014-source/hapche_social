@@ -103,9 +103,19 @@ export default function ScanScreen() {
 
       // Navigate to result screen
       (navigation as any).navigate("ScanResult", { scanRecord });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Processing error:", error);
-      alert("Грешка при обработка на изображението. Опитайте отново.");
+      let errorMessage = "Грешка при обработка на изображението.";
+      
+      if (error?.message?.includes("Network request failed")) {
+        errorMessage = "Не може да се свърже със сървъра. Проверете интернет връзката.";
+      } else if (error?.message?.includes("OCR failed")) {
+        errorMessage = "Не може да се разпознае текст от изображението. Опитайте отново с по-ясна снимка.";
+      } else if (error?.message?.includes("AI analysis failed")) {
+        errorMessage = "AI анализът е неуспешен. Моля опитайте отново.";
+      }
+      
+      alert(errorMessage);
     } finally {
       setIsProcessing(false);
     }
