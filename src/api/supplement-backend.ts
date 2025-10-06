@@ -4,7 +4,7 @@
  */
 
 const API_BASE_URL = "http://145.223.96.213:8000";
-const USE_MOCK_MODE = false; // Set to true for testing without backend
+const USE_MOCK_MODE = true; // Set to true for testing without backend
 
 export interface OCRResponse {
   success: boolean;
@@ -31,22 +31,81 @@ export interface AnalyzeResponse {
 /**
  * Mock data for testing
  */
-const mockAnalysis: SupplementAnalysis = {
-  product_name: "BCAA 2:1:1 Powder",
-  brand: "Optimum Nutrition",
-  ingredients: [
-    "L-Leucine",
-    "L-Isoleucine",
-    "L-Valine",
-    "Natural Flavors",
-    "Citric Acid",
-    "Sucralose"
-  ],
-  serving_size: "5g",
-  servings_per_container: 60,
-  warnings: ["Не превишавайте препоръчителната доза", "Консултирайте се с лекар при бременност"],
-  allergens: ["Може да съдържа следи от мляко", "Произведено в съоръжение, което обработва соя"],
-  description: "Хранителна добавка с разклонено-верижни аминокиселини в съотношение 2:1:1 за подпомагане на мускулното възстановяване след тренировка."
+const mockAnalysisVariants: SupplementAnalysis[] = [
+  {
+    product_name: "BCAA 2:1:1 Powder",
+    brand: "Optimum Nutrition",
+    ingredients: [
+      "L-Leucine",
+      "L-Isoleucine",
+      "L-Valine",
+      "Natural Flavors",
+      "Citric Acid",
+      "Sucralose"
+    ],
+    serving_size: "5g",
+    servings_per_container: 60,
+    warnings: ["Не превишавайте препоръчителната доза", "Консултирайте се с лекар при бременност"],
+    allergens: ["Може да съдържа следи от мляко", "Произведено в съоръжение, което обработва соя"],
+    description: "Хранителна добавка с разклонено-верижни аминокиселини в съотношение 2:1:1 за подпомагане на мускулното възстановяване след тренировка."
+  },
+  {
+    product_name: "Whey Protein Isolate",
+    brand: "Dymatize",
+    ingredients: [
+      "Whey Protein Isolate",
+      "Cocoa Powder",
+      "Natural & Artificial Flavors",
+      "Lecithin",
+      "Stevia"
+    ],
+    serving_size: "30g",
+    servings_per_container: 32,
+    warnings: ["Не е подходящо за деца", "Съхранявайте на сухо място"],
+    allergens: ["Съдържа мляко и млечни продукти"],
+    description: "Висококачествен изолат от суроватъчен протеин с 90% протеиново съдържание. Идеален за пост-тренировъчно възстановяване."
+  },
+  {
+    product_name: "Omega-3 Fish Oil",
+    brand: "Nordic Naturals",
+    ingredients: [
+      "Fish Oil (Anchovy, Sardine)",
+      "EPA (Eicosapentaenoic Acid)",
+      "DHA (Docosahexaenoic Acid)",
+      "Natural Lemon Flavor",
+      "Vitamin E"
+    ],
+    serving_size: "2 капсули",
+    servings_per_container: 90,
+    warnings: ["Консултирайте се с лекар при антикоагулантна терапия"],
+    allergens: ["Съдържа риба"],
+    description: "Чист рибен масло, обогатен с EPA и DHA за подкрепа на сърдечно-съдовото и мозъчно здраве."
+  },
+  {
+    product_name: "Multivitamin Complex",
+    brand: "HAYA Labs",
+    ingredients: [
+      "Витамин A",
+      "Витамин C",
+      "Витамин D3",
+      "Витамин E",
+      "B-Complex",
+      "Магнезий",
+      "Цинк",
+      "Селен"
+    ],
+    serving_size: "1 таблетка",
+    servings_per_container: 100,
+    warnings: ["Не превишавайте препоръчителната доза"],
+    allergens: [],
+    description: "Пълен комплекс от витамини и минерали за ежедневна подкрепа на имунната система и общото здраве."
+  }
+];
+
+// Select random mock data
+const getRandomMockAnalysis = (): SupplementAnalysis => {
+  const randomIndex = Math.floor(Math.random() * mockAnalysisVariants.length);
+  return mockAnalysisVariants[randomIndex];
 };
 
 /**
@@ -105,7 +164,7 @@ export async function analyzeSupplementText(text: string): Promise<AnalyzeRespon
     await new Promise(resolve => setTimeout(resolve, 1500));
     return {
       success: true,
-      data: mockAnalysis
+      data: getRandomMockAnalysis()
     };
   }
 
@@ -137,7 +196,7 @@ export async function scanAndAnalyzeSupplement(imageUri: string): Promise<Supple
   if (USE_MOCK_MODE) {
     // Simulate full pipeline delay
     await new Promise(resolve => setTimeout(resolve, 2500));
-    return mockAnalysis;
+    return getRandomMockAnalysis();
   }
 
   const ocrResult = await scanSupplementLabel(imageUri);

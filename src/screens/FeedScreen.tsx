@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, ScrollView, Image, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -6,6 +6,7 @@ import { useAppStore } from "../state/appStore";
 
 export default function FeedScreen() {
   const scans = useAppStore((s) => s.scans);
+  const [showMockBanner, setShowMockBanner] = useState(true);
 
   // Mock social posts for demo
   const mockPosts = [
@@ -39,6 +40,26 @@ export default function FeedScreen() {
       </View>
 
       <ScrollView className="flex-1">
+        {/* Mock mode info banner */}
+        {showMockBanner && (
+          <View className="bg-amber-50 border-b border-amber-200 p-4">
+            <View className="flex-row items-start">
+              <Ionicons name="information-circle" size={24} color="#f59e0b" />
+              <View className="flex-1 ml-3">
+                <Text className="font-semibold text-amber-900 mb-1">
+                  Demo режим активен
+                </Text>
+                <Text className="text-sm text-amber-800 leading-5">
+                  Сканирането работи с примерни данни. Всеки път ще получавате различна добавка.
+                </Text>
+              </View>
+              <Pressable onPress={() => setShowMockBanner(false)} className="ml-2">
+                <Ionicons name="close" size={20} color="#f59e0b" />
+              </Pressable>
+            </View>
+          </View>
+        )}
+
         {/* Your recent scans section */}
         {scans.length > 0 && (
           <View className="px-4 py-4 bg-blue-50 border-b border-blue-100">
