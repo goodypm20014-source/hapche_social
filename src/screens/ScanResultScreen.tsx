@@ -4,11 +4,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { ScanRecord } from "../state/appStore";
+import { useAppStore } from "../state/appStore";
 
 export default function ScanResultScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { scanRecord } = (route.params || {}) as { scanRecord?: ScanRecord };
+  
+  const canAccessDetailedAnalysis = useAppStore((s) => s.canAccessDetailedAnalysis);
 
   if (!scanRecord) {
     return (
@@ -24,7 +27,21 @@ export default function ScanResultScreen() {
     );
   }
 
-  const { analysis, imageUri } = scanRecord;
+  const { analysis, imageUri, score } = scanRecord;
+  const hasDetailedAccess = canAccessDetailedAnalysis();
+
+  // Generate score color
+  const getScoreColor = (score: number) => {
+    if (score >= 85) return "text-green-500";
+    if (score >= 70) return "text-yellow-500";
+    return "text-red-500";
+  };
+
+  const getScoreBgColor = (score: number) => {
+    if (score >= 85) return "bg-green-50 border-green-200";
+    if (score >= 70) return "bg-yellow-50 border-yellow-200";
+    return "bg-red-50 border-red-200";
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
@@ -49,11 +66,55 @@ export default function ScanResultScreen() {
           />
         </View>
 
-        {/* Product info */}
+        {/* Product info with score */}
         <View className="p-4 border-b border-gray-200">
-          <Text className="text-2xl font-bold mb-2">{analysis.product_name}</Text>
-          {analysis.brand && (
-            <Text className="text-lg text-gray-600">{analysis.brand}</Text>
+          <View className="flex-row items-start justify-between mb-2">
+            <View className="flex-1">
+              <Text className="text-2xl font-bold mb-2">{analysis.product_name}</Text>
+              {analysis.brand && (
+                <Text className="text-lg text-gray-600">{analysis.brand}</Text>
+              )}
+            </View>
+            {score && hasDetailedAccess && (
+              <View className={`px-4 py-3 rounded-lg border ${getScoreBgColor(score)}`}>
+                <Text className={`text-3xl font-bold ${getScoreColor(score)}`}>
+                  {score}
+                </Text>
+                <Text className="text-xs text-gray-600 text-center">/ 100</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Score explanation (detailed analysis only) */}
+          {score && hasDetailedAccess && (
+            <View className="mt-3 bg-gray-50 rounded-lg p-3">
+              <Text className="font-semibold mb-2">Оценка на продукта</Text>
+              <Text className="text-sm text-gray-700 leading-5">
+                {score >= 85 && "Отличен продукт с високо качество на съставките."}
+                {score >= 70 && score < 85 && "Добър продукт, но има място за подобрение."}
+                {score < 70 && "Умерен продукт. Препоръчваме да разгледате алтернативи."}
+              </Text>
+            </View>
+          )}
+
+          {/* Upsell for guests */}
+          {!hasDetailedAccess && (
+            <View className="mt-3 bg-blue-50 rounded-lg p-4 border border-blue-200">
+              <View className="flex-row items-center mb-2">
+                <Ionicons name="lock-closed" size={20} color="#3b82f6" />
+                <Text className="ml-2 font-semibold text-blue-900">
+                  Детайлна оценка
+                </Text>
+              </View>
+              <Text className="text-sm text-blue-800 mb-3">
+                Регистрирайте се безплатно за да виждате нашата експертна оценка на продуктите
+              </Text>
+              <Pressable className="bg-blue-500 py-2 rounded-lg">
+                <Text className="text-white font-semibold text-center">
+                  Регистрирайте се
+                </Text>
+              </Pressable>
+            </View>
           )}
         </View>
 
@@ -92,6 +153,18 @@ export default function ScanResultScreen() {
                 </View>
               ))}
             </View>
+
+            {/* Detailed ingredient analysis (free+ users) */}
+            {hasDetailedAccess && (
+              <View className="mt-4 bg-green-50 rounded-lg p-3 border border-green-200">
+                <Text className="font-semibold text-green-900 mb-2">
+                  Анализ на съставките
+                </Text>
+                <Text className="text-sm text-green-800 leading-5">
+                  Всички съставки са одобрени и безопасни за употреба. Продуктът съдържа ефективни дози на активните вещества.
+                </Text>
+              </View>
+            )}
           </View>
         )}
 
@@ -148,7 +221,10 @@ export default function ScanResultScreen() {
         <Pressable className="flex-1 bg-blue-500 py-4 rounded-lg mr-2 items-center">
           <Text className="text-white font-semibold text-base">Сподели</Text>
         </Pressable>
-        <Pressable className="flex-1 bg-gray-100 py-4 rounded-lg ml-2 items-center">
+        <Pressable
+          onPress={() => navigation.goBack()}
+          className="flex-1 bg-gray-100 py-4 rounded-lg ml-2 items-center"
+        >
           <Text className="text-gray-800 font-semibold text-base">Сканирай отново</Text>
         </Pressable>
       </View>

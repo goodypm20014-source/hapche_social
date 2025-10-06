@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { View, Text, Pressable, ActivityIndicator, Modal } from "react-native";
+import { View, Text, Pressable, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 import { Ionicons } from "@expo/vector-icons";
@@ -12,12 +12,9 @@ export default function ScanScreen() {
   const [facing, setFacing] = useState<CameraType>("back");
   const [permission, requestPermission] = useCameraPermissions();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [showLimitModal, setShowLimitModal] = useState(false);
   const cameraRef = useRef<CameraView>(null);
   
-  const canScan = useAppStore((s) => s.canScan);
   const user = useAppStore((s) => s.user);
-  const incrementScanCount = useAppStore((s) => s.incrementScanCount);
   const addScan = useAppStore((s) => s.addScan);
   const navigation = useNavigation();
 
@@ -51,11 +48,6 @@ export default function ScanScreen() {
   };
 
   const pickImageFromGallery = async () => {
-    if (!canScan()) {
-      setShowLimitModal(true);
-      return;
-    }
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: "images",
       allowsEditing: true,
@@ -68,11 +60,6 @@ export default function ScanScreen() {
   };
 
   const takePicture = async () => {
-    if (!canScan()) {
-      setShowLimitModal(true);
-      return;
-    }
-
     if (!cameraRef.current) return;
 
     try {
@@ -96,10 +83,10 @@ export default function ScanScreen() {
         timestamp: Date.now(),
         imageUri,
         analysis,
+        score: Math.floor(Math.random() * 30) + 70, // Mock score 70-100
       };
 
       addScan(scanRecord);
-      incrementScanCount();
 
       // Navigate to result screen
       (navigation as any).navigate("ScanResult", { scanRecord });
@@ -136,7 +123,7 @@ export default function ScanScreen() {
               <View className="flex-row items-center justify-between">
                 <View className="bg-black/50 px-3 py-2 rounded-lg">
                   <Text className="text-white font-semibold">
-                    {user.isPro ? "Pro" : `${5 - user.scansThisMonth}/5`}
+                    {user.tier === "guest" ? "Гост" : user.tier === "free" ? "Free" : "Premium"}
                   </Text>
                 </View>
                 <Pressable
@@ -184,40 +171,6 @@ export default function ScanScreen() {
           </SafeAreaView>
         </View>
       </CameraView>
-
-      {/* Limit reached modal */}
-      <Modal visible={showLimitModal} transparent animationType="fade">
-        <View className="flex-1 bg-black/70 items-center justify-center px-8">
-          <View className="bg-white rounded-2xl p-6 w-full">
-            <View className="items-center mb-4">
-              <Ionicons name="alert-circle" size={64} color="#ef4444" />
-            </View>
-            <Text className="text-xl font-bold text-center mb-2">
-              Достигнат лимит
-            </Text>
-            <Text className="text-center text-gray-600 mb-6">
-              Изчерпали сте безплатните 5 сканирания за този месец. Надстройте до Pro за неограничен достъп.
-            </Text>
-            <Pressable
-              onPress={() => {
-                setShowLimitModal(false);
-                (navigation as any).navigate("Profile");
-              }}
-              className="bg-amber-500 py-4 rounded-lg mb-3"
-            >
-              <Text className="text-white font-bold text-center text-lg">
-                Upgrade to Pro
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setShowLimitModal(false)}
-              className="py-3"
-            >
-              <Text className="text-gray-600 text-center">Отказ</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }

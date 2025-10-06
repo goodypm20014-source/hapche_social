@@ -1,12 +1,16 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, Image, Pressable } from "react-native";
+import { View, Text, ScrollView, Image, Pressable, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppStore } from "../state/appStore";
 
 export default function FeedScreen() {
+  const user = useAppStore((s) => s.user);
   const scans = useAppStore((s) => s.scans);
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [showMockBanner, setShowMockBanner] = useState(true);
+
+  const isGuest = user.tier === "guest";
 
   // Mock social posts for demo
   const mockPosts = [
@@ -19,6 +23,7 @@ export default function FeedScreen() {
       review: "Отличен продукт! Забелязвам по-бърз възстановяване след тренировка.",
       likes: 24,
       comments: 8,
+      rating: 4.5,
     },
     {
       id: "2",
@@ -29,8 +34,42 @@ export default function FeedScreen() {
       review: "Препоръчвам! Високо качество и без неприятен вкус.",
       likes: 45,
       comments: 12,
+      rating: 5.0,
+    },
+    {
+      id: "3",
+      username: "Георги Иванов",
+      timestamp: "Преди 1 ден",
+      supplementName: "Creatine Monohydrate",
+      brand: "MyProtein",
+      review: "Чиста креатин на страхотна цена. Резултатите са видими след 2 седмици.",
+      likes: 67,
+      comments: 23,
+      rating: 4.8,
     },
   ];
+
+  // Featured products (weekly rotating)
+  const featuredProducts = [
+    {
+      id: "f1",
+      name: "Premium Whey Protein",
+      brand: "Optimum Nutrition",
+      image: "https://via.placeholder.com/300x200/3b82f6/ffffff?text=Whey+Protein",
+      discount: "20% OFF",
+    },
+    {
+      id: "f2",
+      name: "Multivitamin Complex",
+      brand: "HAYA Labs",
+      image: "https://via.placeholder.com/300x200/10b981/ffffff?text=Multivitamin",
+      discount: "15% OFF",
+    },
+  ];
+
+  const handleTeaserTap = () => {
+    setShowRegistrationModal(true);
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
@@ -60,6 +99,28 @@ export default function FeedScreen() {
           </View>
         )}
 
+        {/* Featured products carousel */}
+        <View className="py-4 border-b border-gray-200">
+          <Text className="text-lg font-semibold px-4 mb-3">Препоръчани продукти</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4">
+            {featuredProducts.map((product) => (
+              <Pressable key={product.id} className="mr-3 w-64">
+                <View className="bg-gray-100 rounded-lg overflow-hidden">
+                  <View className="bg-blue-500 h-32 items-center justify-center">
+                    <Text className="text-white text-lg font-bold">{product.brand}</Text>
+                    <Text className="text-white text-sm">{product.name}</Text>
+                  </View>
+                  <View className="p-3">
+                    <View className="bg-red-500 px-2 py-1 rounded self-start">
+                      <Text className="text-white font-bold text-xs">{product.discount}</Text>
+                    </View>
+                  </View>
+                </View>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
+
         {/* Your recent scans section */}
         {scans.length > 0 && (
           <View className="px-4 py-4 bg-blue-50 border-b border-blue-100">
@@ -83,53 +144,142 @@ export default function FeedScreen() {
           </View>
         )}
 
-        {/* Feed posts */}
-        {mockPosts.map((post) => (
-          <View key={post.id} className="border-b border-gray-200 bg-white">
-            {/* Post header */}
-            <View className="flex-row items-center px-4 py-3">
-              <View className="w-10 h-10 rounded-full bg-blue-500 items-center justify-center mr-3">
-                <Text className="text-white font-bold">{post.username[0]}</Text>
+        {/* Feed posts with teaser overlay for guests */}
+        <View className="relative">
+          {mockPosts.map((post, index) => (
+            <View
+              key={post.id}
+              className="border-b border-gray-200 bg-white"
+              style={{ opacity: isGuest && index > 0 ? 0.3 : 1 }}
+            >
+              {/* Post header */}
+              <View className="flex-row items-center px-4 py-3">
+                <View className="w-10 h-10 rounded-full bg-blue-500 items-center justify-center mr-3">
+                  <Text className="text-white font-bold">{post.username[0]}</Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="font-semibold">{post.username}</Text>
+                  <Text className="text-xs text-gray-500">{post.timestamp}</Text>
+                </View>
+                <View className="flex-row items-center">
+                  <Ionicons name="star" size={16} color="#f59e0b" />
+                  <Text className="ml-1 font-semibold">{post.rating}</Text>
+                </View>
               </View>
-              <View className="flex-1">
-                <Text className="font-semibold">{post.username}</Text>
-                <Text className="text-xs text-gray-500">{post.timestamp}</Text>
+
+              {/* Post content */}
+              <View className="px-4 pb-3">
+                <View className="bg-gray-50 rounded-lg p-3 mb-3">
+                  <Text className="font-bold text-lg">{post.supplementName}</Text>
+                  <Text className="text-sm text-gray-600">{post.brand}</Text>
+                </View>
+                <Text className="text-base leading-6">{post.review}</Text>
               </View>
-              <Ionicons name="ellipsis-horizontal" size={20} color="#666" />
-            </View>
 
-            {/* Post content */}
-            <View className="px-4 pb-3">
-              <View className="bg-gray-50 rounded-lg p-3 mb-3">
-                <Text className="font-bold text-lg">{post.supplementName}</Text>
-                <Text className="text-sm text-gray-600">{post.brand}</Text>
+              {/* Post actions */}
+              <View className="flex-row px-4 py-3 border-t border-gray-100">
+                <Pressable className="flex-row items-center mr-6">
+                  <Ionicons name="heart-outline" size={24} color="#666" />
+                  <Text className="ml-2 text-gray-600">{post.likes}</Text>
+                </Pressable>
+                <Pressable className="flex-row items-center">
+                  <Ionicons name="chatbubble-outline" size={22} color="#666" />
+                  <Text className="ml-2 text-gray-600">{post.comments}</Text>
+                </Pressable>
               </View>
-              <Text className="text-base leading-6">{post.review}</Text>
             </View>
+          ))}
 
-            {/* Post actions */}
-            <View className="flex-row px-4 py-3 border-t border-gray-100">
-              <Pressable className="flex-row items-center mr-6">
-                <Ionicons name="heart-outline" size={24} color="#666" />
-                <Text className="ml-2 text-gray-600">{post.likes}</Text>
-              </Pressable>
-              <Pressable className="flex-row items-center">
-                <Ionicons name="chatbubble-outline" size={22} color="#666" />
-                <Text className="ml-2 text-gray-600">{post.comments}</Text>
-              </Pressable>
-            </View>
-          </View>
-        ))}
+          {/* Teaser overlay for guests - peek at the top */}
+          {isGuest && (
+            <Pressable
+              onPress={handleTeaserTap}
+              className="absolute left-0 right-0"
+              style={{ top: 250, bottom: 0 }}
+            >
+              <View className="flex-1 bg-white/95">
+                <View className="absolute right-4 top-4 z-20">
+                  <Pressable
+                    onPress={handleTeaserTap}
+                    className="w-8 h-8 rounded-full bg-gray-200 items-center justify-center"
+                  >
+                    <Ionicons name="close" size={20} color="#666" />
+                  </Pressable>
+                </View>
 
-        {/* Empty state if no posts */}
-        {mockPosts.length === 0 && scans.length === 0 && (
-          <View className="flex-1 items-center justify-center py-20">
-            <Ionicons name="newspaper-outline" size={64} color="#ccc" />
-            <Text className="text-gray-400 text-lg mt-4">Все още няма публикации</Text>
-            <Text className="text-gray-400 text-sm mt-2">Сканирайте добавка и споделете опит</Text>
-          </View>
-        )}
+                <View className="flex-1 items-center justify-center px-8">
+                  <Ionicons name="lock-closed" size={64} color="#3b82f6" />
+                  <Text className="text-2xl font-bold text-center mt-6 mb-3">
+                    Откриjте повече
+                  </Text>
+                  <Text className="text-center text-gray-600 text-base leading-6 mb-6">
+                    Регистрирайте се безплатно за достъп до пълния feed, детайлни анализи и любими съставки
+                  </Text>
+                  <Pressable
+                    onPress={handleTeaserTap}
+                    className="bg-blue-500 px-8 py-4 rounded-lg"
+                  >
+                    <Text className="text-white font-bold text-lg">
+                      Регистрирайте се безплатно
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+            </Pressable>
+          )}
+        </View>
       </ScrollView>
+
+      {/* Registration Modal */}
+      <Modal visible={showRegistrationModal} transparent animationType="slide">
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className="bg-white rounded-t-3xl p-6 pb-8">
+            <View className="flex-row items-center justify-between mb-6">
+              <Text className="text-2xl font-bold">Регистрация</Text>
+              <Pressable onPress={() => setShowRegistrationModal(false)}>
+                <Ionicons name="close" size={28} color="#666" />
+              </Pressable>
+            </View>
+
+            <View className="mb-6">
+              <Text className="text-gray-700 text-base leading-6 mb-4">
+                Създайте безплатен акаунт и получете достъп до:
+              </Text>
+              <View className="space-y-3">
+                <View className="flex-row items-center">
+                  <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
+                  <Text className="ml-3 text-gray-700">Пълен достъп до социалния feed</Text>
+                </View>
+                <View className="flex-row items-center">
+                  <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
+                  <Text className="ml-3 text-gray-700">Детайлни анализи с оценки</Text>
+                </View>
+                <View className="flex-row items-center">
+                  <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
+                  <Text className="ml-3 text-gray-700">Списък с любими съставки</Text>
+                </View>
+              </View>
+            </View>
+
+            <Pressable
+              onPress={() => {
+                setShowRegistrationModal(false);
+                // TODO: Navigate to registration screen
+              }}
+              className="bg-blue-500 py-4 rounded-lg mb-3"
+            >
+              <Text className="text-white font-bold text-center text-lg">
+                Започнете безплатно
+              </Text>
+            </Pressable>
+
+            <Text className="text-center text-sm text-gray-500">
+              Вече имате акаунт?{" "}
+              <Text className="text-blue-500 font-semibold">Влезте</Text>
+            </Text>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
