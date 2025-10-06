@@ -3,8 +3,10 @@ import { View, Text, ScrollView, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppStore } from "../state/appStore";
+import { useNavigation } from "@react-navigation/native";
 
 export default function ProfileScreen() {
+  const navigation = useNavigation();
   const user = useAppStore((s) => s.user);
   const scans = useAppStore((s) => s.scans);
   const favorites = useAppStore((s) => s.favorites);
@@ -82,6 +84,47 @@ export default function ProfileScreen() {
             </View>
           </View>
         </View>
+
+        {/* Personal data section */}
+        {user.tier !== "guest" && (
+          <View className="p-4 border-b border-gray-200">
+            <Text className="text-lg font-bold mb-4">Моите данни</Text>
+            
+            <Pressable
+              onPress={() => (navigation as any).navigate("Favorites")}
+              className="flex-row items-center justify-between py-3 border-b border-gray-100"
+            >
+              <View className="flex-row items-center flex-1">
+                <View className="w-10 h-10 bg-pink-100 rounded-full items-center justify-center mr-3">
+                  <Ionicons name="heart" size={20} color="#ec4899" />
+                </View>
+                <View className="flex-1">
+                  <Text className="font-semibold text-base">Любими съставки</Text>
+                  <Text className="text-sm text-gray-500">{favorites.length} записа</Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#999" />
+            </Pressable>
+
+            {user.tier === "premium" && (
+              <Pressable
+                onPress={() => (navigation as any).navigate("Stacks")}
+                className="flex-row items-center justify-between py-3"
+              >
+                <View className="flex-row items-center flex-1">
+                  <View className="w-10 h-10 bg-purple-100 rounded-full items-center justify-center mr-3">
+                    <Ionicons name="layers" size={20} color="#8b5cf6" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="font-semibold text-base">Мои стакове</Text>
+                    <Text className="text-sm text-gray-500">{stacks.length} стака</Text>
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#999" />
+              </Pressable>
+            )}
+          </View>
+        )}
 
         {/* Tier benefits and CTA */}
         {user.tier === "guest" && (

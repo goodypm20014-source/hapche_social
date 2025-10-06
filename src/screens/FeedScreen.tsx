@@ -48,24 +48,6 @@ export default function FeedScreen() {
     },
   ];
 
-  // Featured products (weekly rotating)
-  const featuredProducts = [
-    {
-      id: "f1",
-      name: "Premium Whey Protein",
-      brand: "Optimum Nutrition",
-      image: "https://via.placeholder.com/300x200/3b82f6/ffffff?text=Whey+Protein",
-      discount: "20% OFF",
-    },
-    {
-      id: "f2",
-      name: "Multivitamin Complex",
-      brand: "HAYA Labs",
-      image: "https://via.placeholder.com/300x200/10b981/ffffff?text=Multivitamin",
-      discount: "15% OFF",
-    },
-  ];
-
   const handleTeaserTap = () => {
     setShowRegistrationModal(true);
   };
@@ -109,30 +91,6 @@ export default function FeedScreen() {
             </View>
           </View>
         )}
-
-        {/* Featured products carousel */}
-        <View className="py-3 border-b border-gray-200">
-          <Text className="text-lg font-semibold px-4 mb-2">Препоръчани продукти</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4">
-            {featuredProducts.map((product) => (
-              <Pressable key={product.id} className="mr-3 w-44">
-                <View className="bg-gray-100 rounded-lg overflow-hidden">
-                  <View className="bg-blue-500 h-20 items-center justify-center">
-                    <Text className="text-white text-sm font-bold text-center px-2">
-                      {product.name}
-                    </Text>
-                  </View>
-                  <View className="p-2 flex-row items-center justify-between">
-                    <Text className="text-xs text-gray-600">{product.brand}</Text>
-                    <View className="bg-red-500 px-2 py-0.5 rounded">
-                      <Text className="text-white font-bold text-xs">{product.discount}</Text>
-                    </View>
-                  </View>
-                </View>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </View>
 
         {/* Feed posts with teaser overlay for guests */}
         <View style={{ position: "relative" }}>
@@ -182,19 +140,31 @@ export default function FeedScreen() {
 
           {/* Teaser overlay for guests - peek at the top */}
           {isGuest && (
-            <View style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }}>
+            <View
+              style={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0,
+                backgroundColor: "transparent",
+              }}
+              pointerEvents="box-none"
+            >
               {/* Small peek window at top (5mm ≈ 60px) */}
-              <View style={{ height: 60 }} />
-              
+              <View style={{ height: 60 }} pointerEvents="none" />
+
               {/* Blur overlay covering rest */}
               <Pressable
                 onPress={handleTeaserTap}
-                className="flex-1 bg-white/98"
-                style={{ 
+                style={{
+                  flex: 1,
+                  backgroundColor: "rgba(255, 255, 255, 0.98)",
                   shadowColor: "#000",
                   shadowOffset: { width: 0, height: -4 },
                   shadowOpacity: 0.1,
                   shadowRadius: 8,
+                  elevation: 5,
                 }}
               >
                 <View style={{ position: "absolute", right: 16, top: 16, zIndex: 20 }}>
@@ -224,7 +194,7 @@ export default function FeedScreen() {
                       Регистрирайте се безплатно
                     </Text>
                   </Pressable>
-                  
+
                   <View className="mt-8 flex-row items-center">
                     <View className="h-px bg-gray-300 flex-1" />
                     <Text className="text-gray-400 text-sm px-4">или продължете като гост</Text>

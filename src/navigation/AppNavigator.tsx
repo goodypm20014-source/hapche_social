@@ -2,15 +2,20 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
+import { View, Text } from "react-native";
 import FeedScreen from "../screens/FeedScreen";
 import ScanScreen from "../screens/ScanScreen";
-import FavoritesScreen from "../screens/FavoritesScreen";
-import StacksScreen from "../screens/StacksScreen";
+import DatabaseScreen from "../screens/DatabaseScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import ScanResultScreen from "../screens/ScanResultScreen";
+import FavoritesScreen from "../screens/FavoritesScreen";
+import StacksScreen from "../screens/StacksScreen";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+
+// Mock notification count - should come from state
+const NEW_PRODUCTS_COUNT = 2;
 
 function TabNavigator() {
   return (
@@ -32,16 +37,6 @@ function TabNavigator() {
         }}
       />
       <Tab.Screen
-        name="Favorites"
-        component={FavoritesScreen}
-        options={{
-          tabBarLabel: "Любими",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="heart" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
         name="Scan"
         component={ScanScreen}
         options={{
@@ -52,12 +47,34 @@ function TabNavigator() {
         }}
       />
       <Tab.Screen
-        name="Stacks"
-        component={StacksScreen}
+        name="Database"
+        component={DatabaseScreen}
         options={{
-          tabBarLabel: "Стакове",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="layers" size={size} color={color} />
+          tabBarLabel: "Библиотека",
+          tabBarIcon: ({ color, size, focused }) => (
+            <View>
+              <Ionicons name="library" size={size} color={color} />
+              {NEW_PRODUCTS_COUNT > 0 && (
+                <View
+                  style={{
+                    position: "absolute",
+                    right: -6,
+                    top: -3,
+                    backgroundColor: "#ef4444",
+                    borderRadius: 10,
+                    minWidth: 18,
+                    height: 18,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    paddingHorizontal: 4,
+                  }}
+                >
+                  <Text style={{ color: "white", fontSize: 10, fontWeight: "bold" }}>
+                    {NEW_PRODUCTS_COUNT}
+                  </Text>
+                </View>
+              )}
+            </View>
           ),
         }}
       />
@@ -84,6 +101,24 @@ export default function AppNavigator() {
         component={ScanResultScreen}
         options={{
           presentation: "modal",
+        }}
+      />
+      <Stack.Screen
+        name="Favorites"
+        component={FavoritesScreen}
+        options={{
+          presentation: "card",
+          headerShown: true,
+          title: "Любими съставки",
+        }}
+      />
+      <Stack.Screen
+        name="Stacks"
+        component={StacksScreen}
+        options={{
+          presentation: "card",
+          headerShown: true,
+          title: "Мои стакове",
         }}
       />
     </Stack.Navigator>
