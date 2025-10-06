@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { View, Text, ScrollView, Pressable, Modal, TextInput, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useAppStore } from "../state/appStore";
+import { useAppStore, SupplementCategory } from "../state/appStore";
 import { useNavigation } from "@react-navigation/native";
 import { moderateStack } from "../api/moderation";
+import { SUPPLEMENT_CATEGORIES } from "../utils/categories";
 
 export default function StacksScreen() {
   const navigation = useNavigation();
@@ -16,6 +17,7 @@ export default function StacksScreen() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newStackName, setNewStackName] = useState("");
   const [newStackDescription, setNewStackDescription] = useState("");
+  const [newStackCategory, setNewStackCategory] = useState<SupplementCategory>("vitamins");
   const [isCreating, setIsCreating] = useState(false);
 
   const hasAccess = canAccessStacks();
@@ -42,6 +44,7 @@ export default function StacksScreen() {
         id: Date.now().toString(),
         name: newStackName.trim(),
         description: newStackDescription.trim() || undefined,
+        category: newStackCategory,
         supplements: [],
         reminders: [],
         isPublic: false,
@@ -74,6 +77,7 @@ export default function StacksScreen() {
   const resetCreateForm = () => {
     setNewStackName("");
     setNewStackDescription("");
+    setNewStackCategory("vitamins");
     setShowCreateModal(false);
     setIsCreating(false);
   };
@@ -264,6 +268,52 @@ export default function StacksScreen() {
                 className="bg-gray-100 rounded-lg px-4 py-3 text-base"
                 autoFocus
               />
+            </View>
+
+            <View className="mb-4">
+              <Text className="text-sm font-semibold text-gray-700 mb-2">
+                Категория
+              </Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="flex-row"
+              >
+                {SUPPLEMENT_CATEGORIES.map((category) => (
+                  <Pressable
+                    key={category.id}
+                    onPress={() => setNewStackCategory(category.id)}
+                    className="mr-2"
+                  >
+                    <View
+                      className="px-3 py-2 rounded-lg flex-row items-center"
+                      style={{
+                        backgroundColor:
+                          newStackCategory === category.id
+                            ? category.color
+                            : category.bgColor,
+                      }}
+                    >
+                      <Ionicons
+                        name={category.icon as any}
+                        size={16}
+                        color={
+                          newStackCategory === category.id ? "#fff" : category.color
+                        }
+                      />
+                      <Text
+                        className="ml-1 font-semibold text-sm"
+                        style={{
+                          color:
+                            newStackCategory === category.id ? "#fff" : category.color,
+                        }}
+                      >
+                        {category.name}
+                      </Text>
+                    </View>
+                  </Pressable>
+                ))}
+              </ScrollView>
             </View>
 
             <View className="mb-6">

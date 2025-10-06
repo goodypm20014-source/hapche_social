@@ -6,6 +6,14 @@ import { SupplementAnalysis } from "../api/supplement-backend";
 // User tier levels
 export type UserTier = "guest" | "free" | "premium";
 
+// Supplement categories
+export type SupplementCategory = 
+  | "vitamins"      // Витамини (витамини и минерали)
+  | "herbs"         // Билки (билки и ботанически)
+  | "proteins"      // Протеини (аминокиселини и протеини)
+  | "probiotics"    // Пробиотици (ензими, метаболити и други)
+  | "multi";        // Мулти (комбинирани или функционални)
+
 // Moderation status for all public content
 export type ModerationStatus = "pending" | "approved" | "rejected" | "flagged";
 
@@ -22,6 +30,7 @@ export interface ScanRecord {
   imageUri: string;
   analysis: SupplementAnalysis;
   score?: number; // Scoring system for supplements (0-100)
+  category?: SupplementCategory; // Primary category of the supplement
 }
 
 export interface FavoriteIngredient {
@@ -45,6 +54,7 @@ export interface Stack {
   description?: string;
   supplements: string[]; // supplement IDs or names
   reminders: StackReminder[];
+  category?: SupplementCategory; // Primary category of this stack
   aiAnalysis?: {
     compatibility: number; // 0-100
     warnings: string[];
@@ -572,6 +582,7 @@ export const useAppStore = create<AppState>()(
             name: "Сутрешна рутина",
             description: "Моите основни добавки за започване на деня с енергия и фокус",
             supplements: ["Vitamin D3", "Omega-3", "Magnesium", "B-Complex"],
+            category: "vitamins",
             reminders: [
               {
                 supplementName: "Vitamin D3",
@@ -609,6 +620,7 @@ export const useAppStore = create<AppState>()(
             name: "Pre-workout",
             description: "За максимална енергия и издръжливост в залата",
             supplements: ["Creatine", "Beta-Alanine", "Citrulline", "Caffeine"],
+            category: "proteins",
             reminders: [],
             aiAnalysis: {
               compatibility: 88,
@@ -646,6 +658,7 @@ export const useAppStore = create<AppState>()(
             name: "Вечерна регенерация",
             description: "За качествен сън и възстановяване на мускулите",
             supplements: ["ZMA", "Ashwagandha", "L-Theanine"],
+            category: "herbs",
             reminders: [
               {
                 supplementName: "ZMA",

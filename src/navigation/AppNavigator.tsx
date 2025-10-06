@@ -40,9 +40,9 @@ function TabNavigator() {
         name="Feed"
         component={FeedScreen}
         options={{
-          tabBarLabel: "Новини",
+          tabBarLabel: "Начало",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="newspaper" size={size} color={color} />
+            <Ionicons name="home" size={size} color={color} />
           ),
         }}
       />
