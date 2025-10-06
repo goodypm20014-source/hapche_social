@@ -1,12 +1,11 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, Image, Pressable, Modal } from "react-native";
+import { View, Text, ScrollView, Pressable, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppStore } from "../state/appStore";
 
 export default function FeedScreen() {
   const user = useAppStore((s) => s.user);
-  const scans = useAppStore((s) => s.scans);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [showMockBanner, setShowMockBanner] = useState(true);
 
@@ -112,18 +111,20 @@ export default function FeedScreen() {
         )}
 
         {/* Featured products carousel */}
-        <View className="py-4 border-b border-gray-200">
-          <Text className="text-lg font-semibold px-4 mb-3">Препоръчани продукти</Text>
+        <View className="py-3 border-b border-gray-200">
+          <Text className="text-lg font-semibold px-4 mb-2">Препоръчани продукти</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4">
             {featuredProducts.map((product) => (
-              <Pressable key={product.id} className="mr-3 w-64">
+              <Pressable key={product.id} className="mr-3 w-44">
                 <View className="bg-gray-100 rounded-lg overflow-hidden">
-                  <View className="bg-blue-500 h-32 items-center justify-center">
-                    <Text className="text-white text-lg font-bold">{product.brand}</Text>
-                    <Text className="text-white text-sm">{product.name}</Text>
+                  <View className="bg-blue-500 h-20 items-center justify-center">
+                    <Text className="text-white text-sm font-bold text-center px-2">
+                      {product.name}
+                    </Text>
                   </View>
-                  <View className="p-3">
-                    <View className="bg-red-500 px-2 py-1 rounded self-start">
+                  <View className="p-2 flex-row items-center justify-between">
+                    <Text className="text-xs text-gray-600">{product.brand}</Text>
+                    <View className="bg-red-500 px-2 py-0.5 rounded">
                       <Text className="text-white font-bold text-xs">{product.discount}</Text>
                     </View>
                   </View>
@@ -132,29 +133,6 @@ export default function FeedScreen() {
             ))}
           </ScrollView>
         </View>
-
-        {/* Your recent scans section */}
-        {scans.length > 0 && (
-          <View className="px-4 py-4 bg-blue-50 border-b border-blue-100">
-            <Text className="text-lg font-semibold mb-2">Вашите сканирания</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {scans.slice(0, 5).map((scan) => (
-                <View key={scan.id} className="mr-3 w-32">
-                  <View className="bg-white rounded-lg p-2 shadow-sm">
-                    <Image
-                      source={{ uri: scan.imageUri }}
-                      className="w-28 h-28 rounded-md mb-2"
-                      resizeMode="cover"
-                    />
-                    <Text className="text-xs font-medium" numberOfLines={2}>
-                      {scan.analysis.product_name}
-                    </Text>
-                  </View>
-                </View>
-              ))}
-            </ScrollView>
-          </View>
-        )}
 
         {/* Feed posts with teaser overlay for guests */}
         <View style={{ position: "relative" }}>

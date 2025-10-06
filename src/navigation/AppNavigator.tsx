@@ -4,6 +4,8 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import FeedScreen from "../screens/FeedScreen";
 import ScanScreen from "../screens/ScanScreen";
+import FavoritesScreen from "../screens/FavoritesScreen";
+import StacksScreen from "../screens/StacksScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import ScanResultScreen from "../screens/ScanResultScreen";
 
@@ -30,12 +32,32 @@ function TabNavigator() {
         }}
       />
       <Tab.Screen
+        name="Favorites"
+        component={FavoritesScreen}
+        options={{
+          tabBarLabel: "Любими",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="heart" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
         name="Scan"
         component={ScanScreen}
         options={{
           tabBarLabel: "Сканирай",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="scan" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Stacks"
+        component={StacksScreen}
+        options={{
+          tabBarLabel: "Стакове",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="layers" size={size} color={color} />
           ),
         }}
       />

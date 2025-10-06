@@ -46,6 +46,7 @@ export interface UserProfile {
   tier: UserTier;
   registeredAt?: number;
   subscriptionExpiresAt?: number;
+  hasCompletedOnboarding: boolean;
 }
 
 interface AppState {
@@ -55,6 +56,7 @@ interface AppState {
   stacks: Stack[];
   
   // User actions
+  completeOnboarding: () => void;
   setUserTier: (tier: UserTier) => void;
   registerUser: (email: string, name: string) => void;
   subscribeToPremium: () => void;
@@ -89,12 +91,19 @@ export const useAppStore = create<AppState>()(
         id: Date.now().toString(),
         name: "Гост",
         tier: "guest",
+        hasCompletedOnboarding: false,
       },
       scans: [],
       favorites: [],
       stacks: [],
 
       // User tier management
+      completeOnboarding: () => {
+        set((state) => ({
+          user: { ...state.user, hasCompletedOnboarding: true },
+        }));
+      },
+
       setUserTier: (tier) => {
         set((state) => ({
           user: { ...state.user, tier },

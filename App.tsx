@@ -2,7 +2,10 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NavigationContainer } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { useState, useEffect } from "react";
 import AppNavigator from "./src/navigation/AppNavigator";
+import WelcomeScreen from "./src/screens/WelcomeScreen";
+import { useAppStore } from "./src/state/appStore";
 
 /*
 IMPORTANT NOTICE: DO NOT REMOVE
@@ -26,6 +29,25 @@ const openai_api_key = Constants.expoConfig.extra.apikey;
 */
 
 export default function App() {
+  const hasCompletedOnboarding = useAppStore((s) => s.user.hasCompletedOnboarding);
+  const completeOnboarding = useAppStore((s) => s.completeOnboarding);
+  const [showWelcome, setShowWelcome] = useState(true);
+
+  useEffect(() => {
+    setShowWelcome(!hasCompletedOnboarding);
+  }, [hasCompletedOnboarding]);
+
+  if (showWelcome) {
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <WelcomeScreen onComplete={completeOnboarding} />
+          <StatusBar style="auto" />
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    );
+  }
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
