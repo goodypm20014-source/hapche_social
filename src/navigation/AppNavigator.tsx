@@ -6,10 +6,12 @@ import { View, Text } from "react-native";
 import FeedScreen from "../screens/FeedScreen";
 import ScanScreen from "../screens/ScanScreen";
 import DatabaseScreen from "../screens/DatabaseScreen";
+import MessagesScreen from "../screens/MessagesScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import ScanResultScreen from "../screens/ScanResultScreen";
 import FavoritesScreen from "../screens/FavoritesScreen";
 import StacksScreen from "../screens/StacksScreen";
+import { useAppStore } from "../state/appStore";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -18,6 +20,10 @@ const Stack = createNativeStackNavigator();
 const NEW_PRODUCTS_COUNT = 2;
 
 function TabNavigator() {
+  const getUnreadMessagesCount = useAppStore((s) => s.getUnreadMessagesCount);
+  const getUnreadNotificationsCount = useAppStore((s) => s.getUnreadNotificationsCount);
+  
+  const unreadTotal = getUnreadMessagesCount() + getUnreadNotificationsCount();
   return (
     <Tab.Navigator
       screenOptions={{
@@ -71,6 +77,38 @@ function TabNavigator() {
                 >
                   <Text style={{ color: "white", fontSize: 10, fontWeight: "bold" }}>
                     {NEW_PRODUCTS_COUNT}
+                  </Text>
+                </View>
+              )}
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Messages"
+        component={MessagesScreen}
+        options={{
+          tabBarLabel: "Съобщения",
+          tabBarIcon: ({ color, size }) => (
+            <View>
+              <Ionicons name="chatbubbles" size={size} color={color} />
+              {unreadTotal > 0 && (
+                <View
+                  style={{
+                    position: "absolute",
+                    right: -6,
+                    top: -3,
+                    backgroundColor: "#ef4444",
+                    borderRadius: 10,
+                    minWidth: 18,
+                    height: 18,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    paddingHorizontal: 4,
+                  }}
+                >
+                  <Text style={{ color: "white", fontSize: 10, fontWeight: "bold" }}>
+                    {unreadTotal}
                   </Text>
                 </View>
               )}
