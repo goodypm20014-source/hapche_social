@@ -13,6 +13,8 @@ export default function ProfileScreen() {
   const stacks = useAppStore((s) => s.stacks);
   const subscribeToPremium = useAppStore((s) => s.subscribeToPremium);
   const registerUser = useAppStore((s) => s.registerUser);
+  const addMockData = useAppStore((s) => s.addMockData);
+  const setUserTier = useAppStore((s) => s.setUserTier);
 
   const getTierLabel = () => {
     switch (user.tier) {
@@ -63,7 +65,27 @@ export default function ProfileScreen() {
                 {getTierLabel()}
               </Text>
             </View>
+            {user.tier !== "guest" && user.rating > 0 && (
+              <View className="ml-2 flex-row items-center bg-yellow-100 px-3 py-1 rounded-full">
+                <Ionicons name="star" size={14} color="#f59e0b" />
+                <Text className="ml-1 text-xs font-semibold text-yellow-700">
+                  {user.rating.toFixed(1)}
+                </Text>
+              </View>
+            )}
           </View>
+          
+          {/* Badges */}
+          {user.tier !== "guest" && user.badges.length > 0 && (
+            <View className="mt-4 flex-row flex-wrap justify-center">
+              {user.badges.slice(0, 3).map((badge) => (
+                <View key={badge.id} className="bg-blue-100 rounded-full px-3 py-1 m-1 flex-row items-center">
+                  <Ionicons name={badge.icon as any} size={14} color="#3b82f6" />
+                  <Text className="ml-1 text-xs font-semibold text-blue-700">{badge.name}</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Stats */}
@@ -79,9 +101,15 @@ export default function ProfileScreen() {
               <Text className="text-sm text-gray-600 mt-1">Любими</Text>
             </View>
             <View className="items-center">
-              <Text className="text-3xl font-bold text-purple-500">{stacks.length}</Text>
+              <Text className="text-3xl font-bold text-amber-500">{stacks.length}</Text>
               <Text className="text-sm text-gray-600 mt-1">Стакове</Text>
             </View>
+            {user.tier !== "guest" && (
+              <View className="items-center">
+                <Text className="text-3xl font-bold text-purple-500">{user.followers.length}</Text>
+                <Text className="text-sm text-gray-600 mt-1">Последователи</Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -109,7 +137,7 @@ export default function ProfileScreen() {
             {user.tier === "premium" && (
               <Pressable
                 onPress={() => (navigation as any).navigate("Stacks")}
-                className="flex-row items-center justify-between py-3"
+                className="flex-row items-center justify-between py-3 border-b border-gray-100"
               >
                 <View className="flex-row items-center flex-1">
                   <View className="w-10 h-10 bg-purple-100 rounded-full items-center justify-center mr-3">
@@ -123,6 +151,22 @@ export default function ProfileScreen() {
                 <Ionicons name="chevron-forward" size={20} color="#999" />
               </Pressable>
             )}
+
+            <Pressable
+              onPress={() => (navigation as any).navigate("PublicStacksFeed")}
+              className="flex-row items-center justify-between py-3"
+            >
+              <View className="flex-row items-center flex-1">
+                <View className="w-10 h-10 bg-amber-100 rounded-full items-center justify-center mr-3">
+                  <Ionicons name="globe" size={20} color="#f59e0b" />
+                </View>
+                <View className="flex-1">
+                  <Text className="font-semibold text-base">Открий Стакове</Text>
+                  <Text className="text-sm text-gray-500">Споделени от общността</Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#999" />
+            </Pressable>
           </View>
         )}
 
@@ -297,6 +341,51 @@ export default function ProfileScreen() {
               />
               <Text className="ml-3 text-gray-700">Ремайндъри</Text>
             </View>
+          </View>
+        </View>
+
+        {/* Dev Tools - For Testing */}
+        <View className="p-4 border-b border-gray-200 bg-gray-50">
+          <Text className="text-lg font-bold mb-4">🛠️ Dev Tools (For Testing)</Text>
+          
+          <View className="space-y-2">
+            <View className="flex-row space-x-2">
+              <Pressable
+                onPress={() => setUserTier("guest")}
+                className="flex-1 bg-gray-400 py-2 rounded-lg"
+              >
+                <Text className="text-white font-semibold text-center text-sm">
+                  Switch to Guest
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  registerUser("demo@example.com", "Demo User");
+                }}
+                className="flex-1 bg-green-500 py-2 rounded-lg"
+              >
+                <Text className="text-white font-semibold text-center text-sm">
+                  Switch to Free
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={subscribeToPremium}
+                className="flex-1 bg-amber-500 py-2 rounded-lg"
+              >
+                <Text className="text-white font-semibold text-center text-sm">
+                  Switch to Premium
+                </Text>
+              </Pressable>
+            </View>
+
+            <Pressable
+              onPress={addMockData}
+              className="bg-blue-500 py-3 rounded-lg mt-2"
+            >
+              <Text className="text-white font-semibold text-center">
+                Add Mock Data (Stacks, Badges, Favorites)
+              </Text>
+            </Pressable>
           </View>
         </View>
       </ScrollView>

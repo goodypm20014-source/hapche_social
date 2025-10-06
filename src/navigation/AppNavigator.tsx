@@ -11,6 +11,8 @@ import ProfileScreen from "../screens/ProfileScreen";
 import ScanResultScreen from "../screens/ScanResultScreen";
 import FavoritesScreen from "../screens/FavoritesScreen";
 import StacksScreen from "../screens/StacksScreen";
+import StackDetailScreen from "../screens/StackDetailScreen";
+import PublicStacksFeedScreen from "../screens/PublicStacksFeedScreen";
 import { useAppStore } from "../state/appStore";
 
 const Tab = createBottomTabNavigator();
@@ -157,6 +159,22 @@ export default function AppNavigator() {
           presentation: "card",
           headerShown: true,
           title: "Мои стакове",
+        }}
+      />
+      <Stack.Screen
+        name="StackDetail"
+        component={StackDetailScreen}
+        options={{
+          presentation: "card",
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="PublicStacksFeed"
+        component={PublicStacksFeedScreen}
+        options={{
+          presentation: "modal",
+          headerShown: false,
         }}
       />
     </Stack.Navigator>

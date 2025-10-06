@@ -1,15 +1,49 @@
-import React from "react";
-import { View, Text, ScrollView, Pressable } from "react-native";
+import React, { useState } from "react";
+import { View, Text, ScrollView, Pressable, Modal, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppStore } from "../state/appStore";
+import { useNavigation } from "@react-navigation/native";
 
 export default function StacksScreen() {
+  const navigation = useNavigation();
   const user = useAppStore((s) => s.user);
   const stacks = useAppStore((s) => s.stacks);
   const canAccessStacks = useAppStore((s) => s.canAccessStacks);
+  const addStack = useAppStore((s) => s.addStack);
+
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newStackName, setNewStackName] = useState("");
+  const [newStackDescription, setNewStackDescription] = useState("");
 
   const hasAccess = canAccessStacks();
+
+  const handleCreateStack = () => {
+    if (newStackName.trim()) {
+      const newStack = {
+        id: Date.now().toString(),
+        name: newStackName.trim(),
+        description: newStackDescription.trim() || undefined,
+        supplements: [],
+        reminders: [],
+        isPublic: false,
+        createdBy: user.id,
+        createdByName: user.name,
+        likes: [],
+        comments: [],
+        followers: [],
+        createdAt: Date.now(),
+      };
+      addStack(newStack);
+      setNewStackName("");
+      setNewStackDescription("");
+      setShowCreateModal(false);
+    }
+  };
+
+  const handleStackPress = (stackId: string) => {
+    (navigation as any).navigate("StackDetail", { stackId });
+  };
 
   if (!hasAccess) {
     return (
@@ -69,7 +103,10 @@ export default function StacksScreen() {
     <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
       <View className="px-4 py-3 border-b border-gray-200 flex-row items-center justify-between">
         <Text className="text-2xl font-bold">Стакове</Text>
-        <Pressable className="bg-amber-500 w-10 h-10 rounded-full items-center justify-center">
+        <Pressable
+          onPress={() => setShowCreateModal(true)}
+          className="bg-amber-500 w-10 h-10 rounded-full items-center justify-center"
+        >
           <Ionicons name="add" size={28} color="white" />
         </Pressable>
       </View>
@@ -83,7 +120,10 @@ export default function StacksScreen() {
           <Text className="text-gray-400 text-sm mt-2 text-center mb-6">
             Създайте си първи stack с добавки
           </Text>
-          <Pressable className="bg-amber-500 px-8 py-3 rounded-lg">
+          <Pressable
+            onPress={() => setShowCreateModal(true)}
+            className="bg-amber-500 px-8 py-3 rounded-lg"
+          >
             <Text className="text-white font-semibold">Създай Stack</Text>
           </Pressable>
         </View>
@@ -92,10 +132,18 @@ export default function StacksScreen() {
           {stacks.map((stack) => (
             <Pressable
               key={stack.id}
+              onPress={() => handleStackPress(stack.id)}
               className="bg-white rounded-xl p-4 mb-3 border border-gray-200"
             >
               <View className="flex-row items-center justify-between mb-3">
-                <Text className="text-lg font-bold flex-1">{stack.name}</Text>
+                <View className="flex-row items-center flex-1">
+                  <Text className="text-lg font-bold flex-1">{stack.name}</Text>
+                  {stack.isPublic && (
+                    <View className="bg-blue-100 px-2 py-1 rounded mr-2">
+                      <Text className="text-xs text-blue-600 font-semibold">PUBLIC</Text>
+                    </View>
+                  )}
+                </View>
                 <View className="flex-row items-center">
                   {stack.aiAnalysis && (
                     <View className="flex-row items-center mr-3">
@@ -130,16 +178,87 @@ export default function StacksScreen() {
                 )}
               </View>
 
-              <View className="flex-row items-center">
-                <Ionicons name="alarm-outline" size={16} color="#666" />
-                <Text className="text-xs text-gray-600 ml-1">
-                  {stack.reminders.filter((r) => r.enabled).length} активни напомняния
-                </Text>
+              {/* Social stats */}
+              <View className="flex-row items-center pt-2 border-t border-gray-100">
+                <View className="flex-row items-center mr-4">
+                  <Ionicons name="heart" size={14} color="#ef4444" />
+                  <Text className="text-xs text-gray-600 ml-1">{stack.likes.length}</Text>
+                </View>
+                <View className="flex-row items-center mr-4">
+                  <Ionicons name="chatbubble" size={14} color="#666" />
+                  <Text className="text-xs text-gray-600 ml-1">{stack.comments.length}</Text>
+                </View>
+                <View className="flex-row items-center mr-4">
+                  <Ionicons name="eye" size={14} color="#666" />
+                  <Text className="text-xs text-gray-600 ml-1">{stack.followers.length}</Text>
+                </View>
+                <View className="flex-row items-center">
+                  <Ionicons name="alarm-outline" size={14} color="#666" />
+                  <Text className="text-xs text-gray-600 ml-1">
+                    {stack.reminders.filter((r) => r.enabled).length}
+                  </Text>
+                </View>
               </View>
             </Pressable>
           ))}
         </ScrollView>
       )}
+
+      {/* Create Stack Modal */}
+      <Modal visible={showCreateModal} transparent animationType="slide">
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className="bg-white rounded-t-3xl p-6 pb-8">
+            <View className="flex-row items-center justify-between mb-6">
+              <Text className="text-2xl font-bold">Нов Stack</Text>
+              <Pressable onPress={() => setShowCreateModal(false)}>
+                <Ionicons name="close" size={28} color="#666" />
+              </Pressable>
+            </View>
+
+            <View className="mb-4">
+              <Text className="text-sm font-semibold text-gray-700 mb-2">
+                Име на stack
+              </Text>
+              <TextInput
+                value={newStackName}
+                onChangeText={setNewStackName}
+                placeholder="напр. Сутрешни добавки"
+                placeholderTextColor="#999"
+                className="bg-gray-100 rounded-lg px-4 py-3 text-base"
+                autoFocus
+              />
+            </View>
+
+            <View className="mb-6">
+              <Text className="text-sm font-semibold text-gray-700 mb-2">
+                Описание (опционално)
+              </Text>
+              <TextInput
+                value={newStackDescription}
+                onChangeText={setNewStackDescription}
+                placeholder="Добави описание..."
+                placeholderTextColor="#999"
+                multiline
+                numberOfLines={3}
+                className="bg-gray-100 rounded-lg px-4 py-3 text-base"
+                style={{ textAlignVertical: "top" }}
+              />
+            </View>
+
+            <Pressable
+              onPress={handleCreateStack}
+              disabled={!newStackName.trim()}
+              className={`py-4 rounded-lg ${
+                newStackName.trim() ? "bg-amber-500" : "bg-gray-300"
+              }`}
+            >
+              <Text className="text-white font-bold text-center text-lg">
+                Създай Stack
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

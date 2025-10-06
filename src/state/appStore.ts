@@ -20,9 +20,18 @@ export interface FavoriteIngredient {
   addedAt: number;
 }
 
+export interface StackComment {
+  id: string;
+  userId: string;
+  userName: string;
+  content: string;
+  timestamp: number;
+}
+
 export interface Stack {
   id: string;
   name: string;
+  description?: string;
   supplements: string[]; // supplement IDs or names
   reminders: StackReminder[];
   aiAnalysis?: {
@@ -30,6 +39,14 @@ export interface Stack {
     warnings: string[];
     recommendations: string[];
   };
+  // Social features
+  isPublic: boolean;
+  createdBy: string; // userId
+  createdByName: string;
+  likes: string[]; // array of userIds who liked
+  comments: StackComment[];
+  followers: string[]; // array of userIds following this stack
+  createdAt: number;
 }
 
 export interface StackReminder {
@@ -83,6 +100,14 @@ export interface PublicProfileCard {
   };
 }
 
+export interface Badge {
+  id: string;
+  name: string;
+  description: string;
+  icon: string; // ionicon name
+  earnedAt: number;
+}
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -92,6 +117,11 @@ export interface UserProfile {
   subscriptionExpiresAt?: number;
   hasCompletedOnboarding: boolean;
   profileCard: PublicProfileCard;
+  // Social features
+  rating: number; // 0-5 user reputation score
+  badges: Badge[];
+  following: string[]; // userIds being followed
+  followers: string[]; // userIds following this user
 }
 
 interface AppState {
@@ -124,11 +154,20 @@ interface AppState {
   updateStack: (id: string, stack: Partial<Stack>) => void;
   removeStack: (id: string) => void;
   canAccessStacks: () => boolean;
+  toggleStackPublic: (stackId: string) => void;
+  likeStack: (stackId: string) => void;
+  unlikeStack: (stackId: string) => void;
+  addStackComment: (stackId: string, content: string) => void;
+  followStack: (stackId: string) => void;
+  unfollowStack: (stackId: string) => void;
   
   // Social features
   canPostToFeed: () => boolean;
   canShareViaSMS: () => boolean;
   canSendMessages: () => boolean;
+  followUser: (userId: string) => void;
+  unfollowUser: (userId: string) => void;
+  isFollowingUser: (userId: string) => boolean;
   
   // Messages & Notifications
   addMessage: (message: Message) => void;
@@ -146,6 +185,9 @@ interface AppState {
   
   // Database access (premium only)
   canAccessFullDatabase: () => boolean;
+  
+  // Dev helpers
+  addMockData: () => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -156,6 +198,10 @@ export const useAppStore = create<AppState>()(
         name: "Гост",
         tier: "guest",
         hasCompletedOnboarding: false,
+        rating: 0,
+        badges: [],
+        following: [],
+        followers: [],
         profileCard: {
           userId: Date.now().toString(),
           name: "Гост",
@@ -369,6 +415,258 @@ export const useAppStore = create<AppState>()(
 
       getFriends: () => {
         return get().friends.filter((f) => f.status === "accepted");
+      },
+
+      // Stack social features
+      toggleStackPublic: (stackId) => {
+        set((state) => ({
+          stacks: state.stacks.map((stack) =>
+            stack.id === stackId ? { ...stack, isPublic: !stack.isPublic } : stack
+          ),
+        }));
+      },
+
+      likeStack: (stackId) => {
+        const userId = get().user.id;
+        set((state) => ({
+          stacks: state.stacks.map((stack) =>
+            stack.id === stackId && !stack.likes.includes(userId)
+              ? { ...stack, likes: [...stack.likes, userId] }
+              : stack
+          ),
+        }));
+      },
+
+      unlikeStack: (stackId) => {
+        const userId = get().user.id;
+        set((state) => ({
+          stacks: state.stacks.map((stack) =>
+            stack.id === stackId
+              ? { ...stack, likes: stack.likes.filter((id) => id !== userId) }
+              : stack
+          ),
+        }));
+      },
+
+      addStackComment: (stackId, content) => {
+        const user = get().user;
+        const comment: StackComment = {
+          id: Date.now().toString(),
+          userId: user.id,
+          userName: user.name,
+          content,
+          timestamp: Date.now(),
+        };
+
+        set((state) => ({
+          stacks: state.stacks.map((stack) =>
+            stack.id === stackId
+              ? { ...stack, comments: [...stack.comments, comment] }
+              : stack
+          ),
+        }));
+      },
+
+      followStack: (stackId) => {
+        const userId = get().user.id;
+        set((state) => ({
+          stacks: state.stacks.map((stack) =>
+            stack.id === stackId && !stack.followers.includes(userId)
+              ? { ...stack, followers: [...stack.followers, userId] }
+              : stack
+          ),
+        }));
+      },
+
+      unfollowStack: (stackId) => {
+        const userId = get().user.id;
+        set((state) => ({
+          stacks: state.stacks.map((stack) =>
+            stack.id === stackId
+              ? { ...stack, followers: stack.followers.filter((id) => id !== userId) }
+              : stack
+          ),
+        }));
+      },
+
+      // User following
+      followUser: (userId) => {
+        set((state) => ({
+          user: {
+            ...state.user,
+            following: state.user.following.includes(userId)
+              ? state.user.following
+              : [...state.user.following, userId],
+          },
+        }));
+      },
+
+      unfollowUser: (userId) => {
+        set((state) => ({
+          user: {
+            ...state.user,
+            following: state.user.following.filter((id) => id !== userId),
+          },
+        }));
+      },
+
+      isFollowingUser: (userId) => {
+        return get().user.following.includes(userId);
+      },
+
+      // Dev helper to add mock data for testing
+      addMockData: () => {
+        const userId = get().user.id;
+        const userName = get().user.name;
+
+        // Add mock badges
+        const mockBadges: Badge[] = [
+          {
+            id: "1",
+            name: "Early Adopter",
+            description: "Един от първите потребители",
+            icon: "rocket",
+            earnedAt: Date.now() - 30 * 24 * 60 * 60 * 1000,
+          },
+          {
+            id: "2",
+            name: "Stack Master",
+            description: "Създал 5+ стака",
+            icon: "trophy",
+            earnedAt: Date.now() - 15 * 24 * 60 * 60 * 1000,
+          },
+          {
+            id: "3",
+            name: "Helpful",
+            description: "Получени 10+ харесвания",
+            icon: "thumbs-up",
+            earnedAt: Date.now() - 7 * 24 * 60 * 60 * 1000,
+          },
+        ];
+
+        // Create mock stacks
+        const mockStacks: Stack[] = [
+          {
+            id: "mock-1",
+            name: "Сутрешна рутина",
+            description: "Моите основни добавки за започване на деня с енергия и фокус",
+            supplements: ["Vitamin D3", "Omega-3", "Magnesium", "B-Complex"],
+            reminders: [
+              {
+                supplementName: "Vitamin D3",
+                time: "08:00",
+                days: [1, 2, 3, 4, 5],
+                enabled: true,
+              },
+            ],
+            aiAnalysis: {
+              compatibility: 92,
+              warnings: [],
+              recommendations: [
+                "Отлична комбинация за имунна система",
+                "D3 се усвоява по-добре с мазнини (Omega-3)",
+              ],
+            },
+            isPublic: true,
+            createdBy: userId,
+            createdByName: userName,
+            likes: ["user2", "user3", "user5"],
+            comments: [
+              {
+                id: "c1",
+                userId: "user2",
+                userName: "Мария Петрова",
+                content: "Супер комбинация! Ползвам същото от месец и се чувствам много по-добре.",
+                timestamp: Date.now() - 2 * 24 * 60 * 60 * 1000,
+              },
+            ],
+            followers: ["user2", "user4"],
+            createdAt: Date.now() - 45 * 24 * 60 * 60 * 1000,
+          },
+          {
+            id: "mock-2",
+            name: "Pre-workout",
+            description: "За максимална енергия и издръжливост в залата",
+            supplements: ["Creatine", "Beta-Alanine", "Citrulline", "Caffeine"],
+            reminders: [],
+            aiAnalysis: {
+              compatibility: 88,
+              warnings: ["Кофеинът може да причини безсъние ако се взема след 16:00ч"],
+              recommendations: [
+                "Вземете 30-45 мин преди тренировка",
+                "Добавете L-Theanine за баланс на кофеина",
+              ],
+            },
+            isPublic: true,
+            createdBy: userId,
+            createdByName: userName,
+            likes: ["user1", "user3", "user4", "user6"],
+            comments: [
+              {
+                id: "c2",
+                userId: "user3",
+                userName: "Георги Иванов",
+                content: "Пробвал съм подобна комбинация. Beta-alanine наистина помага!",
+                timestamp: Date.now() - 5 * 24 * 60 * 60 * 1000,
+              },
+              {
+                id: "c3",
+                userId: "user1",
+                userName: "Иван Димитров",
+                content: "Колко грама креатин взимаш на ден?",
+                timestamp: Date.now() - 3 * 24 * 60 * 60 * 1000,
+              },
+            ],
+            followers: ["user1", "user3", "user5"],
+            createdAt: Date.now() - 30 * 24 * 60 * 60 * 1000,
+          },
+          {
+            id: "mock-3",
+            name: "Вечерна регенерация",
+            description: "За качествен сън и възстановяване на мускулите",
+            supplements: ["ZMA", "Ashwagandha", "L-Theanine"],
+            reminders: [
+              {
+                supplementName: "ZMA",
+                time: "22:00",
+                days: [0, 1, 2, 3, 4, 5, 6],
+                enabled: true,
+              },
+            ],
+            aiAnalysis: {
+              compatibility: 95,
+              warnings: [],
+              recommendations: [
+                "Перфектна комбинация за сън",
+                "ZMA подобрява качеството на дълбокия сън",
+              ],
+            },
+            isPublic: false,
+            createdBy: userId,
+            createdByName: userName,
+            likes: [],
+            comments: [],
+            followers: [],
+            createdAt: Date.now() - 20 * 24 * 60 * 60 * 1000,
+          },
+        ];
+
+        // Add mock favorites
+        const mockFavorites: FavoriteIngredient[] = [
+          { id: "fav-1", name: "Creatine Monohydrate", addedAt: Date.now() - 60 * 24 * 60 * 60 * 1000 },
+          { id: "fav-2", name: "Omega-3 Fish Oil", addedAt: Date.now() - 50 * 24 * 60 * 60 * 1000 },
+          { id: "fav-3", name: "Vitamin D3", addedAt: Date.now() - 40 * 24 * 60 * 60 * 1000 },
+        ];
+
+        set((state) => ({
+          user: {
+            ...state.user,
+            rating: 4.5,
+            badges: mockBadges,
+          },
+          stacks: [...state.stacks, ...mockStacks],
+          favorites: [...state.favorites, ...mockFavorites],
+        }));
       },
     }),
     {
