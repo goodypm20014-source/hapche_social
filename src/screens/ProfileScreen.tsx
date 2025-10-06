@@ -196,12 +196,12 @@ export default function ProfileScreen() {
               <Text className="font-semibold text-green-900 text-lg mb-2">
                 FREE регистрация
               </Text>
-              <View className="space-y-2">
-                <View className="flex-row items-center">
+              <View>
+                <View className="flex-row items-center mb-3">
                   <Ionicons name="checkmark-circle" size={20} color="#22c55e" />
                   <Text className="ml-2 text-sm">Пълен достъп до социалния feed</Text>
                 </View>
-                <View className="flex-row items-center">
+                <View className="flex-row items-center mb-3">
                   <Ionicons name="checkmark-circle" size={20} color="#22c55e" />
                   <Text className="ml-2 text-sm">Детайлни анализи с оценки</Text>
                 </View>
@@ -224,20 +224,20 @@ export default function ProfileScreen() {
               <Text className="font-semibold text-amber-900 text-lg mb-2">
                 PREMIUM план - €1.99/месец
               </Text>
-              <View className="space-y-2">
-                <View className="flex-row items-center">
+              <View>
+                <View className="flex-row items-center mb-2">
                   <Ionicons name="star" size={20} color="#f59e0b" />
                   <Text className="ml-2 text-sm">Пълна база със съставки</Text>
                 </View>
-                <View className="flex-row items-center">
+                <View className="flex-row items-center mb-2">
                   <Ionicons name="star" size={20} color="#f59e0b" />
                   <Text className="ml-2 text-sm">Stack builder с AI проверка</Text>
                 </View>
-                <View className="flex-row items-center">
+                <View className="flex-row items-center mb-2">
                   <Ionicons name="star" size={20} color="#f59e0b" />
                   <Text className="ml-2 text-sm">Ремайндъри и нотификации</Text>
                 </View>
-                <View className="flex-row items-center">
+                <View className="flex-row items-center mb-2">
                   <Ionicons name="star" size={20} color="#f59e0b" />
                   <Text className="ml-2 text-sm">SMS споделяне</Text>
                 </View>
@@ -257,20 +257,20 @@ export default function ProfileScreen() {
               <Text className="font-semibold text-amber-900 text-lg mb-2">
                 PREMIUM план - €1.99/месец
               </Text>
-              <View className="space-y-2 mb-4">
-                <View className="flex-row items-center">
+              <View className="mb-4">
+                <View className="flex-row items-center mb-2">
                   <Ionicons name="star" size={20} color="#f59e0b" />
                   <Text className="ml-2 text-sm">Пълна база със съставки</Text>
                 </View>
-                <View className="flex-row items-center">
+                <View className="flex-row items-center mb-2">
                   <Ionicons name="star" size={20} color="#f59e0b" />
                   <Text className="ml-2 text-sm">Stack builder с AI проверка</Text>
                 </View>
-                <View className="flex-row items-center">
+                <View className="flex-row items-center mb-2">
                   <Ionicons name="star" size={20} color="#f59e0b" />
                   <Text className="ml-2 text-sm">Ремайндъри и нотификации</Text>
                 </View>
-                <View className="flex-row items-center">
+                <View className="flex-row items-center mb-2">
                   <Ionicons name="star" size={20} color="#f59e0b" />
                   <Text className="ml-2 text-sm">SMS споделяне</Text>
                 </View>
@@ -318,7 +318,7 @@ export default function ProfileScreen() {
         {/* Features list based on tier */}
         <View className="px-4 py-6">
           <Text className="text-lg font-bold mb-4">Вашите функции</Text>
-          <View className="space-y-3">
+          <View>
             <View className="flex-row items-center py-2">
               <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
               <Text className="ml-3 text-gray-700">OCR сканиране на добавки</Text>
@@ -366,11 +366,11 @@ export default function ProfileScreen() {
         <View className="p-4 border-b border-gray-200 bg-gray-50">
           <Text className="text-lg font-bold mb-4">🛠️ Dev Tools (For Testing)</Text>
           
-          <View className="space-y-2">
-            <View className="flex-row space-x-2">
+          <View>
+            <View className="flex-row mb-2">
               <Pressable
                 onPress={() => setUserTier("guest")}
-                className="flex-1 bg-gray-400 py-2 rounded-lg"
+                className="flex-1 bg-gray-400 py-2 rounded-lg mr-2"
               >
                 <Text className="text-white font-semibold text-center text-sm">
                   Switch to Guest
@@ -380,7 +380,7 @@ export default function ProfileScreen() {
                 onPress={() => {
                   registerUser("demo@example.com", "Demo User");
                 }}
-                className="flex-1 bg-green-500 py-2 rounded-lg"
+                className="flex-1 bg-green-500 py-2 rounded-lg mr-2"
               >
                 <Text className="text-white font-semibold text-center text-sm">
                   Switch to Free

@@ -436,12 +436,12 @@ export default function FeedScreen() {
               <Text className="text-gray-700 text-base leading-6 mb-4">
                 Създайте безплатен акаунт и получете достъп до:
               </Text>
-              <View className="space-y-3">
-                <View className="flex-row items-center">
+              <View>
+                <View className="flex-row items-center mb-3">
                   <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
                   <Text className="ml-3 text-gray-700">Пълен достъп до социалния feed</Text>
                 </View>
-                <View className="flex-row items-center">
+                <View className="flex-row items-center mb-3">
                   <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
                   <Text className="ml-3 text-gray-700">Детайлни анализи с оценки</Text>
                 </View>
