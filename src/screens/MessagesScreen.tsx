@@ -167,8 +167,8 @@ export default function MessagesScreen() {
 
   if (!canSendMessages()) {
     return (
-      <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
-        <View className="px-4 py-3 border-b border-gray-200">
+      <SafeAreaView className="flex-1 bg-white" edges={["bottom"]}>
+        <View className="px-4 py-3 border-b border-gray-200 bg-white" style={{ paddingTop: 50 }}>
           <Text className="text-2xl font-bold">Съобщения</Text>
         </View>
 
@@ -193,8 +193,8 @@ export default function MessagesScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
-      <View className="px-4 py-3 border-b border-gray-200">
+    <SafeAreaView className="flex-1 bg-white" edges={["bottom"]}>
+      <View className="px-4 py-3 border-b border-gray-200 bg-white" style={{ paddingTop: 50 }}>
         <Text className="text-2xl font-bold">Съобщения</Text>
       </View>
 

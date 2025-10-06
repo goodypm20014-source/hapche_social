@@ -43,9 +43,9 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-white" edges={["bottom"]}>
       {/* Header */}
-      <View className="px-4 py-3 border-b border-gray-200 flex-row items-center justify-between">
+      <View className="px-4 py-3 border-b border-gray-200 flex-row items-center justify-between bg-white" style={{ paddingTop: 50 }}>
         <Text className="text-2xl font-bold">Профил</Text>
         {user.tier !== "guest" && (
           <Pressable onPress={() => (navigation as any).navigate("EditProfile")}>
