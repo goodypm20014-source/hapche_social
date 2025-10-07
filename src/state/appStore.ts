@@ -525,9 +525,9 @@ export const useAppStore = create<AppState>()(
         set((state) => ({
           user: {
             ...state.user,
-            following: state.user.following.includes(userId)
+            following: (state.user.following || []).includes(userId)
               ? state.user.following
-              : [...state.user.following, userId],
+              : [...(state.user.following || []), userId],
           },
         }));
       },
@@ -536,13 +536,13 @@ export const useAppStore = create<AppState>()(
         set((state) => ({
           user: {
             ...state.user,
-            following: state.user.following.filter((id) => id !== userId),
+            following: (state.user.following || []).filter((id) => id !== userId),
           },
         }));
       },
 
       isFollowingUser: (userId) => {
-        return get().user.following.includes(userId);
+        return get().user.following?.includes(userId) || false;
       },
 
       // Dev helper to add mock data for testing
