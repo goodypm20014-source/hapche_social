@@ -47,17 +47,17 @@ export default function FeedScreen() {
   const unreadTotal = getUnreadMessagesCount() + getUnreadNotificationsCount();
 
   // Mock social posts with categories
-  const mockPosts: FeedPost[] = [
+  const [mockPosts, setMockPosts] = useState<FeedPost[]>([
     {
       id: "1",
       username: "Иван Петров",
       userId: "user1",
-      timestamp: Date.now() - 2 * 60 * 60 * 1000, // 2 hours ago
+      timestamp: Date.now() - 2 * 60 * 60 * 1000,
       supplementName: "BCAA 2:1:1",
       brand: "Optimum Nutrition",
       review: "Отличен продукт! Забелязвам по-бърз възстановяване след тренировка.",
-      likes: 24,
-      comments: 8,
+      likes: ["user5", "user6"],
+      comments: [],
       rating: 4.5,
       category: "proteins",
       hasUnreadComments: true,
@@ -66,12 +66,12 @@ export default function FeedScreen() {
       id: "2",
       username: "Мария Георгиева",
       userId: "user2",
-      timestamp: Date.now() - 5 * 60 * 60 * 1000, // 5 hours ago
+      timestamp: Date.now() - 5 * 60 * 60 * 1000,
       supplementName: "Omega-3 Fish Oil",
       brand: "Nordic Naturals",
       review: "Препоръчвам! Високо качество и без неприятен вкус.",
-      likes: 45,
-      comments: 12,
+      likes: ["user3", "user4", "user5"],
+      comments: [],
       rating: 5.0,
       category: "probiotics",
     },
@@ -79,12 +79,12 @@ export default function FeedScreen() {
       id: "3",
       username: "Георги Иванов",
       userId: "user3",
-      timestamp: Date.now() - 24 * 60 * 60 * 1000, // 1 day ago
+      timestamp: Date.now() - 24 * 60 * 60 * 1000,
       supplementName: "Creatine Monohydrate",
       brand: "MyProtein",
       review: "Чиста креатин на страхотна цена. Резултатите са видими след 2 седмици.",
-      likes: 67,
-      comments: 23,
+      likes: ["user2", "user4", "user5", "user6"],
+      comments: [],
       rating: 4.8,
       category: "proteins",
     },
@@ -96,8 +96,8 @@ export default function FeedScreen() {
       supplementName: "Vitamin D3 5000 IU",
       brand: "NOW Foods",
       review: "Супер добавка за имунитета, особено през зимата!",
-      likes: 38,
-      comments: 5,
+      likes: ["user1", "user2"],
+      comments: [],
       rating: 4.7,
       category: "vitamins",
       hasUnreadComments: true,
@@ -110,8 +110,8 @@ export default function FeedScreen() {
       supplementName: "Ashwagandha Extract",
       brand: "Himalaya",
       review: "Помага за стреса и съня. Виждам промяна след 2 седмици.",
-      likes: 52,
-      comments: 15,
+      likes: ["user1", "user3", "user6"],
+      comments: [],
       rating: 4.9,
       category: "herbs",
     },
@@ -123,13 +123,13 @@ export default function FeedScreen() {
       supplementName: "Multivitamin Complex",
       brand: "Centrum",
       review: "Добра комбинация за ежедневна употреба.",
-      likes: 29,
-      comments: 7,
+      likes: ["user2", "user5"],
+      comments: [],
       rating: 4.3,
       category: "multi",
       hasUnreadComments: true,
     },
-  ];
+  ]);
 
   // Filter posts by category
   const filteredPosts = useMemo(() => {
@@ -275,6 +275,31 @@ export default function FeedScreen() {
             </Pressable>
           );
         })}
+
+        {/* Stacks tab */}
+        <Pressable
+          onPress={() => setSelectedCategory("stacks")}
+          className="mr-2"
+        >
+          <View
+            className="px-4 py-2 rounded-full flex-row items-center"
+            style={{
+              backgroundColor: selectedCategory === "stacks" ? "#f59e0b" : "#fef3c7",
+            }}
+          >
+            <Ionicons
+              name="layers"
+              size={16}
+              color={selectedCategory === "stacks" ? "#fff" : "#f59e0b"}
+            />
+            <Text
+              className="ml-2 font-semibold"
+              style={{ color: selectedCategory === "stacks" ? "#fff" : "#f59e0b" }}
+            >
+              Стакове
+            </Text>
+          </View>
+        </Pressable>
       </ScrollView>
 
       <ScrollView className="flex-1" contentContainerStyle={{ flexGrow: 1 }}>
@@ -402,11 +427,31 @@ export default function FeedScreen() {
 
                   {/* Post actions */}
                   <View className="flex-row px-4 py-3 border-t border-gray-100">
-                    <Pressable className="flex-row items-center mr-6">
+                    <Pressable 
+                      className="flex-row items-center mr-6"
+                      onPress={() => {
+                        if (isGuest) {
+                          setShowRegistrationModal(true);
+                          return;
+                        }
+                        setMockPosts(prev => prev.map(p => {
+                          if (p.id === post.id) {
+                            const hasLiked = p.likes.includes(user.id);
+                            return {
+                              ...p,
+                              likes: hasLiked 
+                                ? p.likes.filter(id => id !== user.id)
+                                : [...p.likes, user.id]
+                            };
+                          }
+                          return p;
+                        }));
+                      }}
+                    >
                       <Ionicons 
-                        name="heart-outline" 
+                        name={post.likes.includes(user.id) ? "heart" : "heart-outline"}
                         size={24} 
-                        color={isGuest ? `rgba(102, 102, 102, ${iconOpacity})` : "#666"}
+                        color={post.likes.includes(user.id) ? "#ef4444" : (isGuest ? `rgba(102, 102, 102, ${iconOpacity})` : "#666")}
                       />
                       <Text 
                         className="ml-2"
@@ -414,10 +459,19 @@ export default function FeedScreen() {
                           color: isGuest ? `rgba(75, 85, 99, ${textOpacity})` : "#4b5563"
                         }}
                       >
-                        {post.likes}
+                        {post.likes.length}
                       </Text>
                     </Pressable>
-                    <Pressable className="flex-row items-center">
+                    <Pressable 
+                      className="flex-row items-center"
+                      onPress={() => {
+                        if (isGuest) {
+                          setShowRegistrationModal(true);
+                          return;
+                        }
+                        setSelectedPost(post);
+                      }}
+                    >
                       <Ionicons 
                         name="chatbubble-outline" 
                         size={22} 
@@ -429,7 +483,7 @@ export default function FeedScreen() {
                           color: isGuest ? `rgba(75, 85, 99, ${textOpacity})` : "#4b5563"
                         }}
                       >
-                        {post.comments}
+                        {post.comments.length}
                       </Text>
                       {post.hasUnreadComments && !isGuest && (
                         <View className="ml-1 w-2 h-2 bg-red-500 rounded-full" />
@@ -492,6 +546,140 @@ export default function FeedScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Comments Modal */}
+      {selectedPost && (
+        <Modal visible={!!selectedPost} transparent animationType="slide">
+          <SafeAreaView className="flex-1 bg-white">
+            <KeyboardAvoidingView 
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              className="flex-1"
+            >
+              {/* Header */}
+              <View className="px-4 py-3 border-b border-gray-200 flex-row items-center justify-between">
+                <Text className="text-lg font-semibold">Коментари</Text>
+                <Pressable onPress={() => {
+                  setSelectedPost(null);
+                  setCommentText("");
+                  setCommentImage(null);
+                }}>
+                  <Ionicons name="close" size={28} color="#666" />
+                </Pressable>
+              </View>
+
+              {/* Comments list */}
+              <ScrollView className="flex-1 px-4 py-4">
+                {selectedPost.comments.length === 0 ? (
+                  <View className="items-center py-16">
+                    <Ionicons name="chatbubble-outline" size={48} color="#ccc" />
+                    <Text className="text-gray-400 mt-4">Все още няма коментари</Text>
+                    <Text className="text-gray-400 text-sm mt-2">Бъдете първите!</Text>
+                  </View>
+                ) : (
+                  selectedPost.comments.map((comment) => (
+                    <View key={comment.id} className="mb-4">
+                      <View className="flex-row items-start">
+                        <View className="w-10 h-10 bg-blue-500 rounded-full items-center justify-center mr-3">
+                          <Text className="text-white font-bold">{comment.userName[0]}</Text>
+                        </View>
+                        <View className="flex-1">
+                          <Text className="font-semibold">{comment.userName}</Text>
+                          <Text className="text-gray-700 mt-1">{comment.content}</Text>
+                          {comment.imageUri && (
+                            <View className="mt-2 bg-gray-100 rounded-lg p-2">
+                              <Text className="text-xs text-gray-500">📷 Снимка прикачена</Text>
+                            </View>
+                          )}
+                          <Text className="text-xs text-gray-400 mt-1">
+                            {new Date(comment.timestamp).toLocaleString("bg-BG")}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  ))
+                )}
+              </ScrollView>
+
+              {/* Comment input */}
+              <View className="px-4 py-3 border-t border-gray-200">
+                {commentImage && (
+                  <View className="mb-2 bg-blue-50 rounded-lg p-3 flex-row items-center justify-between">
+                    <Text className="text-sm text-blue-700">📷 Снимка избрана</Text>
+                    <Pressable onPress={() => setCommentImage(null)}>
+                      <Ionicons name="close-circle" size={20} color="#3b82f6" />
+                    </Pressable>
+                  </View>
+                )}
+                
+                <View className="flex-row items-end">
+                  <Pressable
+                    onPress={async () => {
+                      const result = await ImagePicker.launchImageLibraryAsync({
+                        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                        allowsEditing: true,
+                        quality: 0.8,
+                      });
+                      if (!result.canceled) {
+                        setCommentImage(result.assets[0].uri);
+                      }
+                    }}
+                    className="w-10 h-10 items-center justify-center mr-2"
+                  >
+                    <Ionicons name="image-outline" size={24} color="#3b82f6" />
+                  </Pressable>
+                  
+                  <TextInput
+                    value={commentText}
+                    onChangeText={setCommentText}
+                    placeholder="Напишете коментар..."
+                    placeholderTextColor="#999"
+                    multiline
+                    className="flex-1 bg-gray-100 rounded-full px-4 py-3 mr-2 max-h-24"
+                    style={{ fontSize: 16 }}
+                  />
+                  
+                  <Pressable
+                    onPress={() => {
+                      if (commentText.trim()) {
+                        const newComment: FeedComment = {
+                          id: Date.now().toString(),
+                          userId: user.id,
+                          userName: user.name,
+                          content: commentText,
+                          imageUri: commentImage || undefined,
+                          timestamp: Date.now(),
+                        };
+                        
+                        setMockPosts(prev => prev.map(p => {
+                          if (p.id === selectedPost.id) {
+                            return {
+                              ...p,
+                              comments: [...p.comments, newComment]
+                            };
+                          }
+                          return p;
+                        }));
+                        
+                        setCommentText("");
+                        setCommentImage(null);
+                        setSelectedPost({
+                          ...selectedPost,
+                          comments: [...selectedPost.comments, newComment]
+                        });
+                      }
+                    }}
+                    className="w-10 h-10 bg-blue-500 rounded-full items-center justify-center"
+                    disabled={!commentText.trim()}
+                    style={{ opacity: commentText.trim() ? 1 : 0.5 }}
+                  >
+                    <Ionicons name="send" size={20} color="#fff" />
+                  </Pressable>
+                </View>
+              </View>
+            </KeyboardAvoidingView>
+          </SafeAreaView>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 }
