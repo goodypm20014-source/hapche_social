@@ -49,8 +49,7 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["bottom"]}>
       {/* Header */}
-      <View className="px-4 py-3 border-b border-gray-200 flex-row items-center justify-between bg-white" style={{ paddingTop: 50 }}>
-        <Text className="text-2xl font-bold">Профил</Text>
+      <View className="px-4 py-3 border-b border-gray-200 flex-row items-center justify-end bg-white" style={{ paddingTop: 50 }}>
         {user.tier !== "guest" && (
           <Pressable onPress={() => (navigation as any).navigate("EditProfile")}>
             <Ionicons name="create-outline" size={24} color="#3b82f6" />
@@ -93,7 +92,7 @@ export default function ProfileScreen() {
         </View>
           
           {/* Badges */}
-          {user.tier !== "guest" && user.badges.length > 0 && (
+          {user.tier !== "guest" && user.badges && user.badges.length > 0 && (
             <View className="mt-4 flex-row flex-wrap justify-center">
               {user.badges.slice(0, 3).map((badge) => (
                 <View key={badge.id} className="bg-blue-100 rounded-full px-3 py-1 m-1 flex-row items-center">

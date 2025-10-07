@@ -45,9 +45,7 @@ export default function DatabaseScreen() {
   if (!hasAccess) {
     return (
       <SafeAreaView className="flex-1 bg-white" edges={["bottom"]}>
-        <View className="px-4 py-3 border-b border-gray-200 bg-white" style={{ paddingTop: 50 }}>
-          <Text className="text-2xl font-bold">Библиотека</Text>
-        </View>
+        <View className="px-4 py-3 border-b border-gray-200 bg-white" style={{ paddingTop: 50, height: 60 }} />
 
         <View className="flex-1 items-center justify-center px-8">
           <View className="bg-blue-100 w-24 h-24 rounded-full items-center justify-center mb-6">
@@ -98,15 +96,12 @@ export default function DatabaseScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["bottom"]}>
       {/* Header with notifications */}
-      <View className="px-4 py-3 border-b border-gray-200">
-        <View className="flex-row items-center justify-between">
-          <Text className="text-2xl font-bold">Библиотека</Text>
-          {newProductsCount > 0 && (
-            <View className="bg-red-500 px-2 py-1 rounded-full min-w-[24px] items-center">
-              <Text className="text-white font-bold text-xs">{newProductsCount}</Text>
-            </View>
-          )}
-        </View>
+      <View className="px-4 py-3 border-b border-gray-200 flex-row items-center justify-end" style={{ paddingTop: 50 }}>
+        {newProductsCount > 0 && (
+          <View className="bg-red-500 px-2 py-1 rounded-full min-w-[24px] items-center">
+            <Text className="text-white font-bold text-xs">{newProductsCount}</Text>
+          </View>
+        )}
       </View>
 
       {/* Search bar */}
