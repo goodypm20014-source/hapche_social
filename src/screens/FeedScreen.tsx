@@ -163,12 +163,17 @@ export default function FeedScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["bottom"]}>
+      {/* DEBUG: Check if something is above */}
+      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 300, backgroundColor: 'rgba(255,0,0,0.1)', zIndex: 999, pointerEvents: 'none' }}>
+        <Text style={{ color: 'red', fontSize: 20, fontWeight: 'bold', padding: 10 }}>DEBUG OVERLAY - If you see white above me, something is wrong</Text>
+      </View>
+      
       {/* Header */}
       <View className="px-4 py-3 border-b border-gray-200 flex-row items-center justify-between bg-white" style={{ paddingTop: 50 }}>
         <View className="flex-row items-center">
           <Ionicons name="home" size={28} color="#000" />
           <Text className="text-2xl font-bold ml-2">Начало</Text>
-          <Text className="text-xs text-gray-400 ml-2">v2.2</Text>
+          <Text className="text-xs text-gray-400 ml-2">v2.3</Text>
         </View>
         
         {/* Messages icon like Facebook */}
