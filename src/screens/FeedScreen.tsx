@@ -175,7 +175,7 @@ export default function FeedScreen() {
           }}
           className="relative"
         >
-          <Ionicons name="chatbubble-ellipses-outline" size={24} color="#000" />
+          <Ionicons name="chatbubble-ellipses-outline" size={29} color="#000" />
           {unreadTotal > 0 && (
             <View className="absolute -top-1 -right-1 bg-red-500 rounded-full min-w-[18px] h-[18px] items-center justify-center px-1">
               <Text className="text-white text-xs font-bold">{unreadTotal}</Text>
