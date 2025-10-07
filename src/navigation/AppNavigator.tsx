@@ -7,6 +7,7 @@ import FeedScreen from "../screens/FeedScreen";
 import ScanScreen from "../screens/ScanScreen";
 import DatabaseScreen from "../screens/DatabaseScreen";
 import RemindersScreen from "../screens/RemindersScreen";
+import MessagesScreen from "../screens/MessagesScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import ScanResultScreen from "../screens/ScanResultScreen";
 import FavoritesScreen from "../screens/FavoritesScreen";
@@ -195,6 +196,14 @@ export default function AppNavigator() {
         component={EditProfileScreen}
         options={{
           presentation: "card",
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="Messages"
+        component={MessagesScreen}
+        options={{
+          presentation: "modal",
           headerShown: false,
         }}
       />

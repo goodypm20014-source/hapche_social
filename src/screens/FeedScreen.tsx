@@ -164,13 +164,13 @@ export default function FeedScreen() {
     <SafeAreaView className="flex-1 bg-white" edges={["bottom"]}>
       {/* Header */}
       <View className="px-4 py-3 border-b border-gray-200 flex-row items-center justify-end bg-white" style={{ paddingTop: 50 }}>
-        {/* Messages icon like Facebook */}
+        {/* Messages icon */}
         <Pressable
           onPress={() => {
             if (isGuest) {
               setShowRegistrationModal(true);
             } else {
-              (navigation as any).navigate("Reminders");
+              (navigation as any).navigate("Messages");
             }
           }}
           className="relative"

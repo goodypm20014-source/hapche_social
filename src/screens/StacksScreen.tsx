@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, Pressable, Modal, TextInput, Alert } from "react-native";
+import { View, Text, ScrollView, Pressable, Modal, TextInput, Alert, KeyboardAvoidingView, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppStore, SupplementCategory } from "../state/appStore";
@@ -247,8 +247,13 @@ export default function StacksScreen() {
 
       {/* Create Stack Modal */}
       <Modal visible={showCreateModal} transparent animationType="slide">
-        <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-white rounded-t-3xl p-6 pb-8">
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          className="flex-1"
+        >
+          <View className="flex-1 bg-black/50 justify-end">
+            <View className="bg-white rounded-t-3xl p-6 pb-8" style={{ maxHeight: '80%' }}>
+              <ScrollView showsVerticalScrollIndicator={false}>
             <View className="flex-row items-center justify-between mb-6">
               <Text className="text-2xl font-bold">Нов Stack</Text>
               <Pressable onPress={() => setShowCreateModal(false)}>
@@ -343,8 +348,10 @@ export default function StacksScreen() {
                 {isCreating ? "Създаване..." : "Създай Stack"}
               </Text>
             </Pressable>
+              </ScrollView>
+            </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );
