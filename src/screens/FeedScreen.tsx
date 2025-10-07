@@ -2,7 +2,6 @@ import React, { useState, useMemo } from "react";
 import { View, Text, ScrollView, Pressable, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { BlurView } from "expo-blur";
 import { useAppStore, SupplementCategory } from "../state/appStore";
 import { useNavigation } from "@react-navigation/native";
 import { SUPPLEMENT_CATEGORIES } from "../utils/categories";
@@ -25,11 +24,14 @@ interface FeedPost {
 export default function FeedScreen() {
   const navigation = useNavigation();
   const user = useAppStore((s) => s.user);
+  const getUnreadMessagesCount = useAppStore((s) => s.getUnreadMessagesCount);
+  const getUnreadNotificationsCount = useAppStore((s) => s.getUnreadNotificationsCount);
   const [selectedCategory, setSelectedCategory] = useState<SupplementCategory | "all">("all");
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [showMockBanner, setShowMockBanner] = useState(true);
 
   const isGuest = user.tier === "guest";
+  const unreadTotal = getUnreadMessagesCount() + getUnreadNotificationsCount();
 
   // Mock social posts with categories
   const mockPosts: FeedPost[] = [
@@ -162,9 +164,30 @@ export default function FeedScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["bottom"]}>
       {/* Header */}
-      <View className="px-4 py-3 border-b border-gray-200 flex-row items-center bg-white" style={{ paddingTop: 50 }}>
-        <Ionicons name="home" size={28} color="#000" />
-        <Text className="text-2xl font-bold ml-2">Начало</Text>
+      <View className="px-4 py-3 border-b border-gray-200 flex-row items-center justify-between bg-white" style={{ paddingTop: 50 }}>
+        <View className="flex-row items-center">
+          <Ionicons name="home" size={28} color="#000" />
+          <Text className="text-2xl font-bold ml-2">Начало</Text>
+        </View>
+        
+        {/* Messages icon like Facebook */}
+        <Pressable
+          onPress={() => {
+            if (isGuest) {
+              setShowRegistrationModal(true);
+            } else {
+              (navigation as any).navigate("Messages");
+            }
+          }}
+          className="relative"
+        >
+          <Ionicons name="chatbubble-ellipses-outline" size={24} color="#000" />
+          {unreadTotal > 0 && (
+            <View className="absolute -top-1 -right-1 bg-red-500 rounded-full min-w-[18px] h-[18px] items-center justify-center px-1">
+              <Text className="text-white text-xs font-bold">{unreadTotal}</Text>
+            </View>
+          )}
+        </Pressable>
       </View>
 
       {/* Category Tabs */}
@@ -266,8 +289,8 @@ export default function FeedScreen() {
           </View>
         )}
 
-        {/* Feed posts with teaser overlay for guests */}
-        <View style={{ position: "relative" }}>
+        {/* Feed posts */}
+        <View>
           {sortedPosts.length === 0 ? (
             <View className="items-center py-16 px-8">
               <Ionicons name="document-text-outline" size={64} color="#ccc" />
@@ -276,128 +299,159 @@ export default function FeedScreen() {
               </Text>
             </View>
           ) : (
-            sortedPosts.map((post, index) => (
-              <View
-                key={post.id}
-                className="border-b border-gray-200 bg-white"
-              >
-                {/* Post header */}
-                <View className="flex-row items-center px-4 py-3">
-                  <View className="w-10 h-10 rounded-full bg-blue-500 items-center justify-center mr-3">
-                    <Text className="text-white font-bold">{post.username[0]}</Text>
-                  </View>
-                  <View className="flex-1">
-                    <Text className="font-semibold">{post.username}</Text>
-                    <Text className="text-xs text-gray-500">
-                      {formatTimestamp(post.timestamp)}
-                    </Text>
-                  </View>
-                  <View className="flex-row items-center">
-                    <Ionicons name="star" size={16} color="#f59e0b" />
-                    <Text className="ml-1 font-semibold">{post.rating}</Text>
-                  </View>
-                </View>
-
-                {/* Post content */}
-                <View className="px-4 pb-3">
-                  <View
-                    className="rounded-lg p-3 mb-3"
-                    style={{
-                      backgroundColor: SUPPLEMENT_CATEGORIES.find(
-                        (c) => c.id === post.category
-                      )?.bgColor,
-                    }}
-                  >
-                    <View className="flex-row items-center mb-1">
-                      <Ionicons
-                        name={
-                          SUPPLEMENT_CATEGORIES.find((c) => c.id === post.category)
-                            ?.icon as any
-                        }
-                        size={16}
-                        color={
-                          SUPPLEMENT_CATEGORIES.find((c) => c.id === post.category)
-                            ?.color
-                        }
-                      />
-                      <Text className="font-bold text-lg ml-2">{post.supplementName}</Text>
+            sortedPosts.map((post, index) => {
+              // For guests: make colors very pale/faded
+              const textOpacity = isGuest ? 0.15 : 1;
+              const iconOpacity = isGuest ? 0.1 : 1;
+              
+              return (
+                <Pressable
+                  key={post.id}
+                  onPress={() => isGuest && setShowRegistrationModal(true)}
+                  className="border-b border-gray-200 bg-white"
+                >
+                  {/* Post header */}
+                  <View className="flex-row items-center px-4 py-3">
+                    <View 
+                      className="w-10 h-10 rounded-full items-center justify-center mr-3"
+                      style={{ 
+                        backgroundColor: isGuest ? `rgba(59, 130, 246, ${iconOpacity})` : "#3b82f6"
+                      }}
+                    >
+                      <Text 
+                        className="font-bold"
+                        style={{ 
+                          color: isGuest ? `rgba(255, 255, 255, ${textOpacity * 3})` : "#fff"
+                        }}
+                      >
+                        {post.username[0]}
+                      </Text>
                     </View>
-                    <Text className="text-sm text-gray-600">{post.brand}</Text>
+                    <View className="flex-1">
+                      <Text 
+                        className="font-semibold"
+                        style={{ 
+                          color: isGuest ? `rgba(0, 0, 0, ${textOpacity})` : "#000"
+                        }}
+                      >
+                        {post.username}
+                      </Text>
+                      <Text 
+                        className="text-xs"
+                        style={{ 
+                          color: isGuest ? `rgba(107, 114, 128, ${textOpacity})` : "#6b7280"
+                        }}
+                      >
+                        {formatTimestamp(post.timestamp)}
+                      </Text>
+                    </View>
+                    <View className="flex-row items-center">
+                      <Ionicons 
+                        name="star" 
+                        size={16} 
+                        color={isGuest ? `rgba(245, 158, 11, ${iconOpacity})` : "#f59e0b"}
+                      />
+                      <Text 
+                        className="ml-1 font-semibold"
+                        style={{ 
+                          color: isGuest ? `rgba(0, 0, 0, ${textOpacity})` : "#000"
+                        }}
+                      >
+                        {post.rating}
+                      </Text>
+                    </View>
                   </View>
-                  <Text className="text-base leading-6">{post.review}</Text>
-                </View>
 
-                {/* Post actions */}
-                <View className="flex-row px-4 py-3 border-t border-gray-100">
-                  <Pressable className="flex-row items-center mr-6">
-                    <Ionicons name="heart-outline" size={24} color="#666" />
-                    <Text className="ml-2 text-gray-600">{post.likes}</Text>
-                  </Pressable>
-                  <Pressable className="flex-row items-center">
-                    <Ionicons name="chatbubble-outline" size={22} color="#666" />
-                    <Text className="ml-2 text-gray-600">{post.comments}</Text>
-                    {post.hasUnreadComments && (
-                      <View className="ml-1 w-2 h-2 bg-red-500 rounded-full" />
-                    )}
-                  </Pressable>
-                </View>
-              </View>
-            ))
-          )}
-
-          {/* Full screen blur overlay for guests */}
-          {isGuest && sortedPosts.length > 0 && (
-            <BlurView
-              intensity={80}
-              tint="light"
-              style={{
-                position: "absolute",
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 0,
-              }}
-            >
-              <Pressable
-                onPress={handleTeaserTap}
-                style={{ flex: 1 }}
-              >
-                <View style={{ position: "absolute", right: 16, top: 16, zIndex: 20 }}>
-                  <Pressable
-                    onPress={handleTeaserTap}
-                    className="w-10 h-10 rounded-full bg-gray-800/10 items-center justify-center"
-                  >
-                    <Ionicons name="close" size={24} color="#000" />
-                  </Pressable>
-                </View>
-
-                <View className="flex-1 items-center justify-center px-8">
-                  <View className="bg-blue-100 w-20 h-20 rounded-full items-center justify-center mb-6">
-                    <Ionicons name="lock-closed" size={40} color="#3b82f6" />
-                  </View>
-                  <Text className="text-3xl font-bold text-center mb-3">
-                    Откриjте повече
-                  </Text>
-                  <Text className="text-center text-gray-600 text-base leading-6 mb-8">
-                    Регистрирайте се безплатно за достъп до пълния feed, детайлни анализи и любими съставки
-                  </Text>
-                  <Pressable
-                    onPress={handleTeaserTap}
-                    className="bg-blue-500 px-10 py-4 rounded-xl shadow-lg"
-                  >
-                    <Text className="text-white font-bold text-lg">
-                      Регистрирайте се безплатно
+                  {/* Post content */}
+                  <View className="px-4 pb-3">
+                    <View
+                      className="rounded-lg p-3 mb-3"
+                      style={{
+                        backgroundColor: isGuest 
+                          ? `rgba(243, 244, 246, ${iconOpacity})` 
+                          : SUPPLEMENT_CATEGORIES.find((c) => c.id === post.category)?.bgColor,
+                      }}
+                    >
+                      <View className="flex-row items-center mb-1">
+                        <Ionicons
+                          name={
+                            SUPPLEMENT_CATEGORIES.find((c) => c.id === post.category)
+                              ?.icon as any
+                          }
+                          size={16}
+                          color={
+                            isGuest 
+                              ? `rgba(156, 163, 175, ${iconOpacity})` 
+                              : SUPPLEMENT_CATEGORIES.find((c) => c.id === post.category)?.color
+                          }
+                        />
+                        <Text 
+                          className="font-bold text-lg ml-2"
+                          style={{ 
+                            color: isGuest ? `rgba(0, 0, 0, ${textOpacity})` : "#000"
+                          }}
+                        >
+                          {post.supplementName}
+                        </Text>
+                      </View>
+                      <Text 
+                        className="text-sm"
+                        style={{ 
+                          color: isGuest ? `rgba(75, 85, 99, ${textOpacity})` : "#4b5563"
+                        }}
+                      >
+                        {post.brand}
+                      </Text>
+                    </View>
+                    <Text 
+                      className="text-base leading-6"
+                      style={{ 
+                        color: isGuest ? `rgba(0, 0, 0, ${textOpacity})` : "#000"
+                      }}
+                    >
+                      {post.review}
                     </Text>
-                  </Pressable>
-
-                  <View className="mt-8 flex-row items-center">
-                    <View className="h-px bg-gray-300 flex-1" />
-                    <Text className="text-gray-400 text-sm px-4">или продължете като гост</Text>
-                    <View className="h-px bg-gray-300 flex-1" />
                   </View>
-                </View>
-              </Pressable>
-            </BlurView>
+
+                  {/* Post actions */}
+                  <View className="flex-row px-4 py-3 border-t border-gray-100">
+                    <Pressable className="flex-row items-center mr-6">
+                      <Ionicons 
+                        name="heart-outline" 
+                        size={24} 
+                        color={isGuest ? `rgba(102, 102, 102, ${iconOpacity})` : "#666"}
+                      />
+                      <Text 
+                        className="ml-2"
+                        style={{ 
+                          color: isGuest ? `rgba(75, 85, 99, ${textOpacity})` : "#4b5563"
+                        }}
+                      >
+                        {post.likes}
+                      </Text>
+                    </Pressable>
+                    <Pressable className="flex-row items-center">
+                      <Ionicons 
+                        name="chatbubble-outline" 
+                        size={22} 
+                        color={isGuest ? `rgba(102, 102, 102, ${iconOpacity})` : "#666"}
+                      />
+                      <Text 
+                        className="ml-2"
+                        style={{ 
+                          color: isGuest ? `rgba(75, 85, 99, ${textOpacity})` : "#4b5563"
+                        }}
+                      >
+                        {post.comments}
+                      </Text>
+                      {post.hasUnreadComments && !isGuest && (
+                        <View className="ml-1 w-2 h-2 bg-red-500 rounded-full" />
+                      )}
+                    </Pressable>
+                  </View>
+                </Pressable>
+              );
+            })
           )}
         </View>
       </ScrollView>
