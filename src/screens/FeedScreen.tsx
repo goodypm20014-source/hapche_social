@@ -28,7 +28,6 @@ export default function FeedScreen() {
   const getUnreadNotificationsCount = useAppStore((s) => s.getUnreadNotificationsCount);
   const [selectedCategory, setSelectedCategory] = useState<SupplementCategory | "all">("all");
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
-  const [showMockBanner, setShowMockBanner] = useState(false); // Hidden by default
 
   const isGuest = user.tier === "guest";
   const unreadTotal = getUnreadMessagesCount() + getUnreadNotificationsCount();
@@ -163,17 +162,12 @@ export default function FeedScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["bottom"]}>
-      {/* DEBUG: Check if something is above */}
-      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 300, backgroundColor: 'rgba(255,0,0,0.1)', zIndex: 999, pointerEvents: 'none' }}>
-        <Text style={{ color: 'red', fontSize: 20, fontWeight: 'bold', padding: 10 }}>DEBUG OVERLAY - If you see white above me, something is wrong</Text>
-      </View>
-      
       {/* Header */}
       <View className="px-4 py-3 border-b border-gray-200 flex-row items-center justify-between bg-white" style={{ paddingTop: 50 }}>
         <View className="flex-row items-center">
           <Ionicons name="home" size={28} color="#000" />
           <Text className="text-2xl font-bold ml-2">Начало</Text>
-          <Text className="text-xs text-gray-400 ml-2">v2.3</Text>
+          <Text className="text-xs text-gray-400 ml-2">v2.4</Text>
         </View>
         
         {/* Messages icon like Facebook */}
@@ -275,26 +269,6 @@ export default function FeedScreen() {
       </ScrollView>
 
       <ScrollView className="flex-1">
-        {/* Mock mode info banner */}
-        {showMockBanner && (
-          <View className="bg-amber-50 border-b border-amber-200 p-4">
-            <View className="flex-row items-start">
-              <Ionicons name="information-circle" size={24} color="#f59e0b" />
-              <View className="flex-1 ml-3">
-                <Text className="font-semibold text-amber-900 mb-1">
-                  Demo режим активен
-                </Text>
-                <Text className="text-sm text-amber-800 leading-5">
-                  Сканирането работи с примерни данни. Категориите филтрират feed-а автоматично.
-                </Text>
-              </View>
-              <Pressable onPress={() => setShowMockBanner(false)} className="ml-2">
-                <Ionicons name="close" size={20} color="#f59e0b" />
-              </Pressable>
-            </View>
-          </View>
-        )}
-
         {/* Feed posts */}
         <View>
           {sortedPosts.length === 0 ? (
