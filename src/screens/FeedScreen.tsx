@@ -167,7 +167,7 @@ export default function FeedScreen() {
         <View className="flex-row items-center">
           <Ionicons name="home" size={28} color="#000" />
           <Text className="text-2xl font-bold ml-2">Начало</Text>
-          <Text className="text-xs text-gray-400 ml-2">v2.7-DEBUG</Text>
+          <Text className="text-xs text-gray-400 ml-2">v2.8</Text>
         </View>
         
         {/* Messages icon like Facebook */}
@@ -196,9 +196,8 @@ export default function FeedScreen() {
         showsHorizontalScrollIndicator={false}
         className="border-b border-gray-200"
         contentContainerClassName="px-2 py-3"
-        style={{ backgroundColor: '#ff0000', maxHeight: 60 }}
+        style={{ maxHeight: 60 }}
       >
-        <Text style={{ backgroundColor: 'cyan', padding: 5 }}>CATEGORIES START</Text>
         {/* All tab */}
         <Pressable
           onPress={() => setSelectedCategory("all")}
@@ -270,8 +269,7 @@ export default function FeedScreen() {
         })}
       </ScrollView>
 
-      <ScrollView className="flex-1" contentContainerStyle={{ flexGrow: 1 }} style={{ backgroundColor: '#00ff00' }}>
-        <Text style={{ backgroundColor: 'yellow', padding: 10, fontSize: 16, fontWeight: 'bold' }}>START OF SCROLLVIEW</Text>
+      <ScrollView className="flex-1" contentContainerStyle={{ flexGrow: 1 }}>
         {sortedPosts.length === 0 ? (
           <View className="items-center py-16 px-8">
             <Ionicons name="document-text-outline" size={64} color="#ccc" />
