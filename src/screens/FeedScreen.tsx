@@ -167,7 +167,7 @@ export default function FeedScreen() {
         <View className="flex-row items-center">
           <Ionicons name="home" size={28} color="#000" />
           <Text className="text-2xl font-bold ml-2">Начало</Text>
-          <Text className="text-xs text-gray-400 ml-2">v2.6-DEBUG</Text>
+          <Text className="text-xs text-gray-400 ml-2">v2.7-DEBUG</Text>
         </View>
         
         {/* Messages icon like Facebook */}
@@ -196,7 +196,9 @@ export default function FeedScreen() {
         showsHorizontalScrollIndicator={false}
         className="border-b border-gray-200"
         contentContainerClassName="px-2 py-3"
+        style={{ backgroundColor: '#ff0000', maxHeight: 60 }}
       >
+        <Text style={{ backgroundColor: 'cyan', padding: 5 }}>CATEGORIES START</Text>
         {/* All tab */}
         <Pressable
           onPress={() => setSelectedCategory("all")}
