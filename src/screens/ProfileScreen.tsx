@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, ScrollView, Pressable, Image } from "react-native";
+import React, { useState } from "react";
+import { View, Text, ScrollView, Pressable, Image, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppStore } from "../state/appStore";
@@ -11,10 +11,14 @@ export default function ProfileScreen() {
   const scans = useAppStore((s) => s.scans);
   const favorites = useAppStore((s) => s.favorites);
   const stacks = useAppStore((s) => s.stacks);
+  const friends = useAppStore((s) => s.friends);
   const subscribeToPremium = useAppStore((s) => s.subscribeToPremium);
   const registerUser = useAppStore((s) => s.registerUser);
   const addMockData = useAppStore((s) => s.addMockData);
   const setUserTier = useAppStore((s) => s.setUserTier);
+  const removeFriend = useAppStore((s) => s.removeFriend);
+  const acceptFriendRequest = useAppStore((s) => s.acceptFriendRequest);
+  const [showFriendsModal, setShowFriendsModal] = useState(false);
 
   const getTierLabel = () => {
     switch (user.tier) {
@@ -78,20 +82,15 @@ export default function ProfileScreen() {
             </View>
           )}
           <View className="flex-row items-center">
-            <View className={`px-3 py-1 rounded-full ${getTierColor()}`}>
-              <Text className="text-white font-semibold text-xs">
-                {getTierLabel()}
+          {user.tier !== "guest" && user.rating > 0 && (
+            <View className="flex-row items-center bg-yellow-100 px-3 py-1 rounded-full">
+              <Ionicons name="star" size={14} color="#f59e0b" />
+              <Text className="ml-1 text-xs font-semibold text-yellow-700">
+                {user.rating.toFixed(1)}
               </Text>
             </View>
-            {user.tier !== "guest" && user.rating > 0 && (
-              <View className="ml-2 flex-row items-center bg-yellow-100 px-3 py-1 rounded-full">
-                <Ionicons name="star" size={14} color="#f59e0b" />
-                <Text className="ml-1 text-xs font-semibold text-yellow-700">
-                  {user.rating.toFixed(1)}
-                </Text>
-              </View>
-            )}
-          </View>
+          )}
+        </View>
           
           {/* Badges */}
           {user.tier !== "guest" && user.badges.length > 0 && (
@@ -123,10 +122,12 @@ export default function ProfileScreen() {
               <Text className="text-sm text-gray-600 mt-1">Стакове</Text>
             </View>
             {user.tier !== "guest" && (
-              <View className="items-center">
-                <Text className="text-3xl font-bold text-purple-500">{user.followers.length}</Text>
-                <Text className="text-sm text-gray-600 mt-1">Последователи</Text>
-              </View>
+              <Pressable onPress={() => setShowFriendsModal(true)} className="items-center">
+                <Text className="text-3xl font-bold text-purple-500">
+                  {friends.filter((f) => f.status === "accepted").length}
+                </Text>
+                <Text className="text-sm text-gray-600 mt-1">Приятели</Text>
+              </Pressable>
             )}
           </View>
         </View>
@@ -407,6 +408,130 @@ export default function ProfileScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Friends List Modal */}
+      <Modal visible={showFriendsModal} transparent animationType="slide">
+        <SafeAreaView className="flex-1 bg-white">
+          {/* Header */}
+          <View className="px-4 py-3 border-b border-gray-200 flex-row items-center justify-between">
+            <Text className="text-2xl font-bold">Приятели</Text>
+            <Pressable onPress={() => setShowFriendsModal(false)}>
+              <Ionicons name="close" size={28} color="#666" />
+            </Pressable>
+          </View>
+
+          <ScrollView className="flex-1">
+            {/* Accepted Friends */}
+            {friends.filter((f) => f.status === "accepted").length > 0 && (
+              <View className="px-4 py-4">
+                <Text className="text-lg font-bold mb-3">
+                  Мои приятели ({friends.filter((f) => f.status === "accepted").length})
+                </Text>
+                {friends
+                  .filter((f) => f.status === "accepted")
+                  .map((friend) => (
+                    <View
+                      key={friend.id}
+                      className="flex-row items-center justify-between py-3 border-b border-gray-100"
+                    >
+                      <View className="flex-row items-center flex-1">
+                        <View className="w-12 h-12 bg-blue-500 rounded-full items-center justify-center mr-3">
+                          <Text className="text-white font-bold text-lg">
+                            {friend.name[0]}
+                          </Text>
+                        </View>
+                        <View className="flex-1">
+                          <Text className="font-semibold text-base">{friend.name}</Text>
+                          <Text className="text-sm text-gray-500">
+                            Приятели от{" "}
+                            {new Date(friend.since).toLocaleDateString("bg-BG", {
+                              month: "long",
+                              year: "numeric",
+                            })}
+                          </Text>
+                        </View>
+                      </View>
+                      <Pressable
+                        onPress={() => {
+                          removeFriend(friend.id);
+                        }}
+                        className="ml-2"
+                      >
+                        <Ionicons name="ellipsis-horizontal" size={24} color="#666" />
+                      </Pressable>
+                    </View>
+                  ))}
+              </View>
+            )}
+
+            {/* Pending Friend Requests */}
+            {friends.filter((f) => f.status === "pending").length > 0 && (
+              <View className="px-4 py-4 bg-gray-50">
+                <Text className="text-lg font-bold mb-3">
+                  Заявки за приятелство ({friends.filter((f) => f.status === "pending").length})
+                </Text>
+                {friends
+                  .filter((f) => f.status === "pending")
+                  .map((friend) => (
+                    <View
+                      key={friend.id}
+                      className="bg-white rounded-lg p-3 mb-3 border border-gray-200"
+                    >
+                      <View className="flex-row items-center mb-3">
+                        <View className="w-12 h-12 bg-blue-500 rounded-full items-center justify-center mr-3">
+                          <Text className="text-white font-bold text-lg">
+                            {friend.name[0]}
+                          </Text>
+                        </View>
+                        <View className="flex-1">
+                          <Text className="font-semibold text-base">{friend.name}</Text>
+                          <Text className="text-sm text-gray-500">
+                            Изпратена заявка
+                          </Text>
+                        </View>
+                      </View>
+                      <View className="flex-row">
+                        <Pressable
+                          onPress={() => {
+                            acceptFriendRequest(friend.id);
+                          }}
+                          className="flex-1 bg-blue-500 py-2 rounded-lg mr-2"
+                        >
+                          <Text className="text-white font-semibold text-center">
+                            Приеми
+                          </Text>
+                        </Pressable>
+                        <Pressable
+                          onPress={() => {
+                            removeFriend(friend.id);
+                          }}
+                          className="flex-1 bg-gray-200 py-2 rounded-lg"
+                        >
+                          <Text className="text-gray-700 font-semibold text-center">
+                            Откажи
+                          </Text>
+                        </Pressable>
+                      </View>
+                    </View>
+                  ))}
+              </View>
+            )}
+
+            {/* Empty state */}
+            {friends.length === 0 && (
+              <View className="flex-1 items-center justify-center px-8 py-16">
+                <Ionicons name="people-outline" size={64} color="#ccc" />
+                <Text className="text-gray-400 text-lg mt-4 text-center">
+                  Все още нямате приятели
+                </Text>
+                <Text className="text-gray-400 text-sm mt-2 text-center">
+                  Започнете да споделяте добавки и stacks, за да се свържете с други потребители
+                </Text>
+              </View>
+            )}
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }

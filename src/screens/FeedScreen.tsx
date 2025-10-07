@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { View, Text, ScrollView, Pressable, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
 import { useAppStore, SupplementCategory } from "../state/appStore";
 import { useNavigation } from "@react-navigation/native";
 import { SUPPLEMENT_CATEGORIES } from "../utils/categories";
@@ -161,16 +162,9 @@ export default function FeedScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["bottom"]}>
       {/* Header */}
-      <View className="px-4 py-3 border-b border-gray-200 flex-row items-center justify-between bg-white" style={{ paddingTop: 50 }}>
-        <View className="flex-row items-center">
-          <Ionicons name="home" size={28} color="#000" />
-          <Text className="text-2xl font-bold ml-2">Начало</Text>
-        </View>
-        {isGuest && (
-          <View className="bg-gray-200 px-3 py-1 rounded-full">
-            <Text className="text-xs font-semibold text-gray-700">ГОСТ</Text>
-          </View>
-        )}
+      <View className="px-4 py-3 border-b border-gray-200 flex-row items-center bg-white" style={{ paddingTop: 50 }}>
+        <Ionicons name="home" size={28} color="#000" />
+        <Text className="text-2xl font-bold ml-2">Начало</Text>
       </View>
 
       {/* Category Tabs */}
@@ -286,7 +280,6 @@ export default function FeedScreen() {
               <View
                 key={post.id}
                 className="border-b border-gray-200 bg-white"
-                style={{ opacity: isGuest && index > 0 ? 0.3 : 1 }}
               >
                 {/* Post header */}
                 <View className="flex-row items-center px-4 py-3">
@@ -352,34 +345,22 @@ export default function FeedScreen() {
             ))
           )}
 
-          {/* Teaser overlay for guests - peek at the top */}
-          {isGuest && (
-            <View
+          {/* Full screen blur overlay for guests */}
+          {isGuest && sortedPosts.length > 0 && (
+            <BlurView
+              intensity={80}
+              tint="light"
               style={{
                 position: "absolute",
                 left: 0,
                 right: 0,
                 top: 0,
                 bottom: 0,
-                backgroundColor: "transparent",
               }}
-              pointerEvents="box-none"
             >
-              {/* Small peek window at top (5mm ≈ 60px) */}
-              <View style={{ height: 60 }} pointerEvents="none" />
-
-              {/* Blur overlay covering rest */}
               <Pressable
                 onPress={handleTeaserTap}
-                style={{
-                  flex: 1,
-                  backgroundColor: "rgba(255, 255, 255, 0.98)",
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: -4 },
-                  shadowOpacity: 0.1,
-                  shadowRadius: 8,
-                  elevation: 5,
-                }}
+                style={{ flex: 1 }}
               >
                 <View style={{ position: "absolute", right: 16, top: 16, zIndex: 20 }}>
                   <Pressable
@@ -416,7 +397,7 @@ export default function FeedScreen() {
                   </View>
                 </View>
               </Pressable>
-            </View>
+            </BlurView>
           )}
         </View>
       </ScrollView>

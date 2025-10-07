@@ -550,6 +550,65 @@ export const useAppStore = create<AppState>()(
         const userId = get().user.id;
         const userName = get().user.name;
 
+        // Add mock friends
+        const mockFriends: Friend[] = [
+          {
+            id: "friend-1",
+            userId: "user2",
+            name: "Мария Петрова",
+            status: "accepted",
+            since: Date.now() - 60 * 24 * 60 * 60 * 1000,
+          },
+          {
+            id: "friend-2",
+            userId: "user3",
+            name: "Георги Иванов",
+            status: "accepted",
+            since: Date.now() - 30 * 24 * 60 * 60 * 1000,
+          },
+          {
+            id: "friend-3",
+            userId: "user4",
+            name: "Елена Димитрова",
+            status: "pending",
+            since: Date.now() - 2 * 24 * 60 * 60 * 1000,
+          },
+        ];
+
+        // Add mock messages
+        const mockMessages: Message[] = [
+          {
+            id: "msg-1",
+            fromUserId: "user2",
+            fromUserName: "Мария Петрова",
+            toUserId: userId,
+            content: "Здравей! Видях твоя stack със сутрешни добавки. Много добра комбинация!",
+            timestamp: Date.now() - 2 * 60 * 60 * 1000,
+            read: false,
+            type: "message",
+          },
+          {
+            id: "msg-2",
+            fromUserId: "user3",
+            fromUserName: "Георги Иванов",
+            toUserId: userId,
+            content: "Пробвал ли си BCAA 2:1:1 от Optimum Nutrition? Препоръчвам го!",
+            timestamp: Date.now() - 24 * 60 * 60 * 1000,
+            read: true,
+            type: "message",
+          },
+          {
+            id: "msg-3",
+            fromUserId: "user2",
+            fromUserName: "Мария Петрова",
+            toUserId: userId,
+            content: "Между другото, имаш ли препоръка за магнезий?",
+            timestamp: Date.now() - 1 * 60 * 60 * 1000,
+            read: false,
+            type: "message",
+          },
+        ];
+
         // Add mock badges
         const mockBadges: Badge[] = [
           {
@@ -700,6 +759,8 @@ export const useAppStore = create<AppState>()(
           },
           stacks: [...state.stacks, ...mockStacks],
           favorites: [...state.favorites, ...mockFavorites],
+          friends: [...state.friends, ...mockFriends],
+          messages: [...state.messages, ...mockMessages],
         }));
       },
     }),

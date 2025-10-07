@@ -120,12 +120,7 @@ export default function ScanScreen() {
           <SafeAreaView className="flex-1" edges={["bottom"]}>
             {/* Top bar */}
             <View className="px-4 py-3">
-              <View className="flex-row items-center justify-between">
-                <View className="bg-black/50 px-3 py-2 rounded-lg">
-                  <Text className="text-white font-semibold">
-                    {user.tier === "guest" ? "Гост" : user.tier === "free" ? "Free" : "Premium"}
-                  </Text>
-                </View>
+              <View className="flex-row items-center justify-end">
                 <Pressable
                   onPress={toggleCameraFacing}
                   className="bg-black/50 w-12 h-12 rounded-full items-center justify-center"

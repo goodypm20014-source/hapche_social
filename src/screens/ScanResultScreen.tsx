@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, ScrollView, Image, Pressable } from "react-native";
+import React, { useState } from "react";
+import { View, Text, ScrollView, Image, Pressable, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -12,6 +12,12 @@ export default function ScanResultScreen() {
   const { scanRecord } = (route.params || {}) as { scanRecord?: ScanRecord };
   
   const canAccessDetailedAnalysis = useAppStore((s) => s.canAccessDetailedAnalysis);
+  const canAccessFavorites = useAppStore((s) => s.canAccessFavorites);
+  const addFavorite = useAppStore((s) => s.addFavorite);
+  const friends = useAppStore((s) => s.friends);
+
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
 
   if (!scanRecord) {
     return (
@@ -29,6 +35,28 @@ export default function ScanResultScreen() {
 
   const { analysis, imageUri, score } = scanRecord;
   const hasDetailedAccess = canAccessDetailedAnalysis();
+  const hasFavoritesAccess = canAccessFavorites();
+  const acceptedFriends = friends.filter(f => f.status === "accepted");
+
+  const handleAddToFavorites = () => {
+    if (!hasFavoritesAccess) return;
+    
+    // Add main product
+    if (analysis.product_name) {
+      addFavorite({
+        id: Date.now().toString(),
+        name: analysis.product_name,
+        addedAt: Date.now(),
+      });
+      setIsFavorited(true);
+    }
+  };
+
+  const handleShareWithFriend = (friendName: string) => {
+    // TODO: Implement actual sharing
+    console.log(`Sharing with ${friendName}`);
+    setShowShareModal(false);
+  };
 
   // Generate score color
   const getScoreColor = (score: number) => {
@@ -50,10 +78,7 @@ export default function ScanResultScreen() {
         <Pressable onPress={() => navigation.goBack()} className="mr-3">
           <Ionicons name="arrow-back" size={24} color="#000" />
         </Pressable>
-        <Text className="text-xl font-bold flex-1">Резултат от сканиране</Text>
-        <Pressable>
-          <Ionicons name="share-outline" size={24} color="#007AFF" />
-        </Pressable>
+        <Text className="text-xl font-bold flex-1">Резултат</Text>
       </View>
 
       <ScrollView className="flex-1">
@@ -109,7 +134,10 @@ export default function ScanResultScreen() {
               <Text className="text-sm text-blue-800 mb-3">
                 Регистрирайте се безплатно за да виждате нашата експертна оценка на продуктите
               </Text>
-              <Pressable className="bg-blue-500 py-2 rounded-lg">
+              <Pressable 
+                onPress={() => (navigation as any).navigate("Registration")}
+                className="bg-blue-500 py-2 rounded-lg"
+              >
                 <Text className="text-white font-semibold text-center">
                   Регистрирайте се
                 </Text>
@@ -218,16 +246,87 @@ export default function ScanResultScreen() {
 
       {/* Bottom action bar */}
       <View className="border-t border-gray-200 px-4 py-3 flex-row">
-        <Pressable className="flex-1 bg-blue-500 py-4 rounded-lg mr-2 items-center">
-          <Text className="text-white font-semibold text-base">Сподели</Text>
+        {hasFavoritesAccess && (
+          <Pressable 
+            onPress={handleAddToFavorites}
+            disabled={isFavorited}
+            className={`flex-1 ${isFavorited ? "bg-green-500" : "bg-pink-500"} py-4 rounded-lg mr-2 flex-row items-center justify-center`}
+          >
+            <Ionicons 
+              name={isFavorited ? "checkmark" : "heart"} 
+              size={20} 
+              color="white" 
+            />
+            <Text className="text-white font-semibold text-base ml-2">
+              {isFavorited ? "Добавено" : "Любими"}
+            </Text>
+          </Pressable>
+        )}
+        
+        <Pressable 
+          onPress={() => setShowShareModal(true)}
+          className="flex-1 bg-blue-500 py-4 rounded-lg mx-1 flex-row items-center justify-center"
+        >
+          <Ionicons name="share-outline" size={20} color="white" />
+          <Text className="text-white font-semibold text-base ml-2">Сподели</Text>
         </Pressable>
+        
         <Pressable
           onPress={() => navigation.goBack()}
-          className="flex-1 bg-gray-100 py-4 rounded-lg ml-2 items-center"
+          className="flex-1 bg-gray-100 py-4 rounded-lg ml-2 items-center justify-center"
         >
-          <Text className="text-gray-800 font-semibold text-base">Сканирай отново</Text>
+          <Text className="text-gray-800 font-semibold text-base">Отново</Text>
         </Pressable>
       </View>
+
+      {/* Share Modal */}
+      <Modal visible={showShareModal} transparent animationType="slide">
+        <View className="flex-1 bg-black/50 justify-end">
+          <View className="bg-white rounded-t-3xl p-6 pb-8">
+            <View className="flex-row items-center justify-between mb-6">
+              <Text className="text-2xl font-bold">Сподели с приятел</Text>
+              <Pressable onPress={() => setShowShareModal(false)}>
+                <Ionicons name="close" size={28} color="#666" />
+              </Pressable>
+            </View>
+
+            {acceptedFriends.length === 0 ? (
+              <View className="items-center py-8">
+                <Ionicons name="people-outline" size={64} color="#ccc" />
+                <Text className="text-gray-400 text-lg mt-4 text-center">
+                  Все още нямате приятели
+                </Text>
+                <Text className="text-gray-400 text-sm mt-2 text-center">
+                  Добавете приятели за да споделяте с тях
+                </Text>
+              </View>
+            ) : (
+              <ScrollView className="max-h-96">
+                {acceptedFriends.map((friend) => (
+                  <Pressable
+                    key={friend.id}
+                    onPress={() => handleShareWithFriend(friend.name)}
+                    className="flex-row items-center py-3 border-b border-gray-100"
+                  >
+                    <View className="w-12 h-12 rounded-full bg-blue-500 items-center justify-center mr-3">
+                      <Text className="text-white font-bold text-lg">
+                        {friend.name[0]}
+                      </Text>
+                    </View>
+                    <View className="flex-1">
+                      <Text className="font-semibold text-base">{friend.name}</Text>
+                      <Text className="text-sm text-gray-500">
+                        Приятели от {new Date(friend.since).toLocaleDateString("bg-BG")}
+                      </Text>
+                    </View>
+                    <Ionicons name="send" size={24} color="#3b82f6" />
+                  </Pressable>
+                ))}
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

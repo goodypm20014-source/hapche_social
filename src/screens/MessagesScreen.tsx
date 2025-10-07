@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, ScrollView, Pressable } from "react-native";
+import React, { useState } from "react";
+import { View, Text, ScrollView, Pressable, Modal, TextInput, KeyboardAvoidingView, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppStore } from "../state/appStore";
@@ -10,6 +10,8 @@ const TopTab = createMaterialTopTabNavigator();
 function MessagesTab() {
   const messages = useAppStore((s) => s.messages);
   const markMessageAsRead = useAppStore((s) => s.markMessageAsRead);
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
 
   // Group messages by conversation
   const conversations = messages.reduce((acc: any, msg) => {
@@ -20,6 +22,34 @@ function MessagesTab() {
     acc[otherId].push(msg);
     return acc;
   }, {});
+
+  // Get conversation messages
+  const getConversationMessages = (userId: string) => {
+    return conversations[userId] || [];
+  };
+
+  const handleOpenConversation = (userId: string) => {
+    setSelectedConversation(userId);
+    // Mark all messages in this conversation as read
+    const conversationMsgs = getConversationMessages(userId);
+    conversationMsgs.forEach((msg: any) => {
+      if (!msg.read) {
+        markMessageAsRead(msg.id);
+      }
+    });
+  };
+
+  const handleSendReply = () => {
+    if (replyText.trim()) {
+      // In a real app, this would send the message to the backend
+      // For now, we'll just show a success state
+      setReplyText("");
+      // Close modal after a short delay to show the message was "sent"
+      setTimeout(() => {
+        setSelectedConversation(null);
+      }, 300);
+    }
+  };
 
   if (messages.length === 0) {
     return (
@@ -36,42 +66,117 @@ function MessagesTab() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-white">
-      {Object.entries(conversations).map(([userId, msgs]: [string, any]) => {
-        const lastMsg = msgs[0];
-        return (
-          <Pressable
-            key={userId}
-            onPress={() => markMessageAsRead(lastMsg.id)}
-            className="px-4 py-4 border-b border-gray-200 flex-row items-center"
-          >
-            <View className="w-12 h-12 bg-blue-500 rounded-full items-center justify-center mr-3">
-              <Text className="text-white font-bold text-lg">
-                {lastMsg.fromUserName[0]}
-              </Text>
-            </View>
-            <View className="flex-1">
-              <View className="flex-row items-center justify-between mb-1">
-                <Text className="font-semibold text-base">{lastMsg.fromUserName}</Text>
-                {!lastMsg.read && (
-                  <View className="w-2 h-2 bg-blue-500 rounded-full" />
-                )}
+    <>
+      <ScrollView className="flex-1 bg-white">
+        {Object.entries(conversations).map(([userId, msgs]: [string, any]) => {
+          const lastMsg = msgs[0];
+          return (
+            <Pressable
+              key={userId}
+              onPress={() => handleOpenConversation(userId)}
+              className="px-4 py-4 border-b border-gray-200 flex-row items-center"
+            >
+              <View className="w-12 h-12 bg-blue-500 rounded-full items-center justify-center mr-3">
+                <Text className="text-white font-bold text-lg">
+                  {lastMsg.fromUserName[0]}
+                </Text>
               </View>
-              <Text className="text-gray-600 text-sm" numberOfLines={1}>
-                {lastMsg.type === "supplement_share"
-                  ? "📦 Споделена добавка"
-                  : lastMsg.type === "stack_share"
-                  ? "📚 Споделен stack"
-                  : lastMsg.content}
-              </Text>
-              <Text className="text-gray-400 text-xs mt-1">
-                {new Date(lastMsg.timestamp).toLocaleDateString("bg-BG")}
-              </Text>
-            </View>
-          </Pressable>
-        );
-      })}
-    </ScrollView>
+              <View className="flex-1">
+                <View className="flex-row items-center justify-between mb-1">
+                  <Text className="font-semibold text-base">{lastMsg.fromUserName}</Text>
+                  {!lastMsg.read && (
+                    <View className="w-2 h-2 bg-blue-500 rounded-full" />
+                  )}
+                </View>
+                <Text className="text-gray-600 text-sm" numberOfLines={1}>
+                  {lastMsg.type === "supplement_share"
+                    ? "📦 Споделена добавка"
+                    : lastMsg.type === "stack_share"
+                    ? "📚 Споделен stack"
+                    : lastMsg.content}
+                </Text>
+                <Text className="text-gray-400 text-xs mt-1">
+                  {new Date(lastMsg.timestamp).toLocaleDateString("bg-BG")}
+                </Text>
+              </View>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+
+      {/* Conversation Modal */}
+      {selectedConversation && (
+        <Modal visible={!!selectedConversation} transparent animationType="slide">
+          <SafeAreaView className="flex-1 bg-white">
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              className="flex-1"
+              keyboardVerticalOffset={0}
+            >
+              {/* Header */}
+              <View className="px-4 py-3 border-b border-gray-200 flex-row items-center justify-between">
+                <View className="flex-row items-center flex-1">
+                  <View className="w-10 h-10 bg-blue-500 rounded-full items-center justify-center mr-3">
+                    <Text className="text-white font-bold">
+                      {getConversationMessages(selectedConversation)[0]?.fromUserName[0]}
+                    </Text>
+                  </View>
+                  <Text className="text-lg font-semibold">
+                    {getConversationMessages(selectedConversation)[0]?.fromUserName}
+                  </Text>
+                </View>
+                <Pressable onPress={() => setSelectedConversation(null)}>
+                  <Ionicons name="close" size={28} color="#666" />
+                </Pressable>
+              </View>
+
+              {/* Messages */}
+              <ScrollView className="flex-1 px-4 py-4">
+                {getConversationMessages(selectedConversation)
+                  .slice()
+                  .reverse()
+                  .map((msg: any) => (
+                    <View key={msg.id} className="mb-4">
+                      <View className="bg-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 self-start max-w-[80%]">
+                        <Text className="text-base">{msg.content}</Text>
+                      </View>
+                      <Text className="text-xs text-gray-400 mt-1 ml-2">
+                        {new Date(msg.timestamp).toLocaleTimeString("bg-BG", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </Text>
+                    </View>
+                  ))}
+              </ScrollView>
+
+              {/* Reply Input */}
+              <View className="px-4 py-3 border-t border-gray-200 flex-row items-end">
+                <TextInput
+                  value={replyText}
+                  onChangeText={setReplyText}
+                  placeholder="Напишете съобщение..."
+                  placeholderTextColor="#999"
+                  multiline
+                  className="flex-1 bg-gray-100 rounded-full px-4 py-3 mr-2 max-h-24"
+                  style={{ fontSize: 16 }}
+                />
+                <Pressable
+                  onPress={handleSendReply}
+                  className="w-10 h-10 bg-blue-500 rounded-full items-center justify-center"
+                  disabled={!replyText.trim()}
+                  style={{
+                    opacity: replyText.trim() ? 1 : 0.5,
+                  }}
+                >
+                  <Ionicons name="send" size={20} color="#fff" />
+                </Pressable>
+              </View>
+            </KeyboardAvoidingView>
+          </SafeAreaView>
+        </Modal>
+      )}
+    </>
   );
 }
 
