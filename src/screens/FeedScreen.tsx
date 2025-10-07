@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from "react";
-import { View, Text, ScrollView, Pressable, Modal } from "react-native";
+import { View, Text, ScrollView, Pressable, Modal, TextInput, KeyboardAvoidingView, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useAppStore, SupplementCategory } from "../state/appStore";
 import { useNavigation } from "@react-navigation/native";
 import { SUPPLEMENT_CATEGORIES } from "../utils/categories";
+import * as ImagePicker from 'expo-image-picker';
 
 interface FeedPost {
   id: string;
@@ -14,11 +15,20 @@ interface FeedPost {
   supplementName: string;
   brand: string;
   review: string;
-  likes: number;
-  comments: number;
+  likes: string[]; // array of userIds who liked
+  comments: FeedComment[];
   rating: number;
   category: SupplementCategory;
   hasUnreadComments?: boolean;
+}
+
+interface FeedComment {
+  id: string;
+  userId: string;
+  userName: string;
+  content: string;
+  imageUri?: string;
+  timestamp: number;
 }
 
 export default function FeedScreen() {
@@ -26,8 +36,12 @@ export default function FeedScreen() {
   const user = useAppStore((s) => s.user);
   const getUnreadMessagesCount = useAppStore((s) => s.getUnreadMessagesCount);
   const getUnreadNotificationsCount = useAppStore((s) => s.getUnreadNotificationsCount);
-  const [selectedCategory, setSelectedCategory] = useState<SupplementCategory | "all">("all");
+  const [selectedCategory, setSelectedCategory] = useState<SupplementCategory | "all" | "stacks">("all");
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<FeedPost | null>(null);
+  const [commentText, setCommentText] = useState("");
+  const [commentImage, setCommentImage] = useState<string | null>(null);
+  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
 
   const isGuest = user.tier === "guest";
   const unreadTotal = getUnreadMessagesCount() + getUnreadNotificationsCount();

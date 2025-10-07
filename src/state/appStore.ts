@@ -37,6 +37,10 @@ export interface FavoriteIngredient {
   id: string;
   name: string;
   addedAt: number;
+  analysis?: {
+    overall_score: number;
+    summary: string;
+  };
 }
 
 export interface StackComment {
