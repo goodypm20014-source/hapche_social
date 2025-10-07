@@ -167,7 +167,7 @@ export default function FeedScreen() {
         <View className="flex-row items-center">
           <Ionicons name="home" size={28} color="#000" />
           <Text className="text-2xl font-bold ml-2">Начало</Text>
-          <Text className="text-xs text-gray-400 ml-2">v2.4</Text>
+          <Text className="text-xs text-gray-400 ml-2">v2.5</Text>
         </View>
         
         {/* Messages icon like Facebook */}
@@ -268,18 +268,16 @@ export default function FeedScreen() {
         })}
       </ScrollView>
 
-      <ScrollView className="flex-1">
-        {/* Feed posts */}
-        <View>
-          {sortedPosts.length === 0 ? (
-            <View className="items-center py-16 px-8">
-              <Ionicons name="document-text-outline" size={64} color="#ccc" />
-              <Text className="text-gray-400 text-lg mt-4 text-center">
-                Все още няма публикации в тази категория
-              </Text>
-            </View>
-          ) : (
-            sortedPosts.map((post, index) => {
+      <ScrollView className="flex-1" contentContainerStyle={{ flexGrow: 1 }}>
+        {sortedPosts.length === 0 ? (
+          <View className="items-center py-16 px-8">
+            <Ionicons name="document-text-outline" size={64} color="#ccc" />
+            <Text className="text-gray-400 text-lg mt-4 text-center">
+              Все още няма публикации в тази категория
+            </Text>
+          </View>
+        ) : (
+          sortedPosts.map((post, index) => {
               // For guests: make colors EXTREMELY pale/faded - almost invisible
               const textOpacity = isGuest ? 0.04 : 1;  // 4% opacity - barely visible
               const iconOpacity = isGuest ? 0.03 : 1;  // 3% opacity - almost invisible
@@ -433,7 +431,6 @@ export default function FeedScreen() {
               );
             })
           )}
-        </View>
       </ScrollView>
 
       {/* Registration Modal */}
