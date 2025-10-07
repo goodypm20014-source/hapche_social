@@ -28,7 +28,7 @@ export default function FeedScreen() {
   const getUnreadNotificationsCount = useAppStore((s) => s.getUnreadNotificationsCount);
   const [selectedCategory, setSelectedCategory] = useState<SupplementCategory | "all">("all");
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
-  const [showMockBanner, setShowMockBanner] = useState(true);
+  const [showMockBanner, setShowMockBanner] = useState(false); // Hidden by default
 
   const isGuest = user.tier === "guest";
   const unreadTotal = getUnreadMessagesCount() + getUnreadNotificationsCount();
@@ -168,7 +168,7 @@ export default function FeedScreen() {
         <View className="flex-row items-center">
           <Ionicons name="home" size={28} color="#000" />
           <Text className="text-2xl font-bold ml-2">Начало</Text>
-          <Text className="text-xs text-gray-400 ml-2">v2.1</Text>
+          <Text className="text-xs text-gray-400 ml-2">v2.2</Text>
         </View>
         
         {/* Messages icon like Facebook */}
