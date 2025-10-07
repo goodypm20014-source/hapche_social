@@ -167,7 +167,7 @@ export default function FeedScreen() {
         <View className="flex-row items-center">
           <Ionicons name="home" size={28} color="#000" />
           <Text className="text-2xl font-bold ml-2">Начало</Text>
-          <Text className="text-xs text-gray-400 ml-2">v2.5</Text>
+          <Text className="text-xs text-gray-400 ml-2">v2.6-DEBUG</Text>
         </View>
         
         {/* Messages icon like Facebook */}
@@ -268,7 +268,8 @@ export default function FeedScreen() {
         })}
       </ScrollView>
 
-      <ScrollView className="flex-1" contentContainerStyle={{ flexGrow: 1 }}>
+      <ScrollView className="flex-1" contentContainerStyle={{ flexGrow: 1 }} style={{ backgroundColor: '#00ff00' }}>
+        <Text style={{ backgroundColor: 'yellow', padding: 10, fontSize: 16, fontWeight: 'bold' }}>START OF SCROLLVIEW</Text>
         {sortedPosts.length === 0 ? (
           <View className="items-center py-16 px-8">
             <Ionicons name="document-text-outline" size={64} color="#ccc" />
