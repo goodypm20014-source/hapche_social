@@ -168,6 +168,7 @@ export default function FeedScreen() {
         <View className="flex-row items-center">
           <Ionicons name="home" size={28} color="#000" />
           <Text className="text-2xl font-bold ml-2">Начало</Text>
+          <Text className="text-xs text-gray-400 ml-2">v2.1</Text>
         </View>
         
         {/* Messages icon like Facebook */}
@@ -300,9 +301,9 @@ export default function FeedScreen() {
             </View>
           ) : (
             sortedPosts.map((post, index) => {
-              // For guests: make colors very pale/faded
-              const textOpacity = isGuest ? 0.15 : 1;
-              const iconOpacity = isGuest ? 0.1 : 1;
+              // For guests: make colors EXTREMELY pale/faded - almost invisible
+              const textOpacity = isGuest ? 0.04 : 1;  // 4% opacity - barely visible
+              const iconOpacity = isGuest ? 0.03 : 1;  // 3% opacity - almost invisible
               
               return (
                 <Pressable
