@@ -110,19 +110,19 @@ export default function PublicStacksFeedScreen() {
           <View className="flex-row items-center mr-5">
             <Ionicons name="heart" size={18} color="#ef4444" />
             <Text className="text-sm text-gray-700 ml-1 font-semibold">
-              {stack.likes.length}
+              {stack.likes?.length || 0}
             </Text>
           </View>
           <View className="flex-row items-center mr-5">
             <Ionicons name="chatbubble" size={16} color="#666" />
             <Text className="text-sm text-gray-700 ml-1 font-semibold">
-              {stack.comments.length}
+              {stack.comments?.length || 0}
             </Text>
           </View>
           <View className="flex-row items-center">
             <Ionicons name="eye" size={18} color="#666" />
             <Text className="text-sm text-gray-700 ml-1 font-semibold">
-              {stack.followers.length} следят
+              {stack.followers?.length || 0} следят
             </Text>
           </View>
         </View>

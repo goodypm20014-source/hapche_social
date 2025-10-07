@@ -170,7 +170,7 @@ export default function FeedScreen() {
             if (isGuest) {
               setShowRegistrationModal(true);
             } else {
-              (navigation as any).navigate("Messages");
+              (navigation as any).navigate("Reminders");
             }
           }}
           className="relative"

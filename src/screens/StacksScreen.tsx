@@ -236,7 +236,7 @@ export default function StacksScreen() {
                 <View className="flex-row items-center">
                   <Ionicons name="alarm-outline" size={14} color="#666" />
                   <Text className="text-xs text-gray-600 ml-1">
-                    {stack.reminders.filter((r) => r.enabled).length}
+                    {stack.reminders ? stack.reminders.filter((r) => r.enabled).length : 0}
                   </Text>
                 </View>
               </View>
