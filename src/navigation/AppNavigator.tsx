@@ -6,7 +6,7 @@ import { View, Text } from "react-native";
 import FeedScreen from "../screens/FeedScreen";
 import ScanScreen from "../screens/ScanScreen";
 import DatabaseScreen from "../screens/DatabaseScreen";
-import MessagesScreen from "../screens/MessagesScreen";
+import RemindersScreen from "../screens/RemindersScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import ScanResultScreen from "../screens/ScanResultScreen";
 import FavoritesScreen from "../screens/FavoritesScreen";
@@ -24,10 +24,13 @@ const Stack = createNativeStackNavigator();
 const NEW_PRODUCTS_COUNT = 2;
 
 function TabNavigator() {
-  const getUnreadMessagesCount = useAppStore((s) => s.getUnreadMessagesCount);
-  const getUnreadNotificationsCount = useAppStore((s) => s.getUnreadNotificationsCount);
+  const stacks = useAppStore((s) => s.stacks);
   
-  const unreadTotal = getUnreadMessagesCount() + getUnreadNotificationsCount();
+  // Count active reminders from stacks
+  const activeRemindersCount = stacks.reduce((count, stack) => {
+    return count + (stack.reminders?.length || 0);
+  }, 0);
+  
   return (
     <Tab.Navigator
       screenOptions={{
@@ -89,20 +92,20 @@ function TabNavigator() {
         }}
       />
       <Tab.Screen
-        name="Messages"
-        component={MessagesScreen}
+        name="Reminders"
+        component={RemindersScreen}
         options={{
-          tabBarLabel: "Съобщения",
+          tabBarLabel: "Напомняния",
           tabBarIcon: ({ color, size }) => (
             <View>
-              <Ionicons name="chatbubbles" size={size} color={color} />
-              {unreadTotal > 0 && (
+              <Ionicons name="alarm" size={size} color={color} />
+              {activeRemindersCount > 0 && (
                 <View
                   style={{
                     position: "absolute",
                     right: -6,
                     top: -3,
-                    backgroundColor: "#ef4444",
+                    backgroundColor: "#f59e0b",
                     borderRadius: 10,
                     minWidth: 18,
                     height: 18,
@@ -112,7 +115,7 @@ function TabNavigator() {
                   }}
                 >
                   <Text style={{ color: "white", fontSize: 10, fontWeight: "bold" }}>
-                    {unreadTotal}
+                    {activeRemindersCount}
                   </Text>
                 </View>
               )}
